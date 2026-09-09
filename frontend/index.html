@@ -1,0 +1,2784 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>FraudNexus — Investigation & Trace Fraud Intelligence Engine</title>
+  <style>
+    :root {
+      --bg-main: #090D16;
+      --bg-surface: #0F172A;
+      --bg-card: #141E33;
+      --bg-card-hover: #1B2945;
+      --border-dim: #1E293B;
+      --border-bright: #334155;
+      --text-main: #F8FAFC;
+      --text-muted: #94A3B8;
+      --text-dim: #64748B;
+      
+      --critical: #EF4444;
+      --critical-bg: rgba(239, 68, 68, 0.12);
+      --critical-border: rgba(239, 68, 68, 0.35);
+
+      --high: #F97316;
+      --high-bg: rgba(249, 115, 22, 0.12);
+      --high-border: rgba(249, 115, 22, 0.35);
+
+      --medium: #F59E0B;
+      --medium-bg: rgba(245, 158, 11, 0.12);
+      --medium-border: rgba(245, 158, 11, 0.35);
+
+      --low: #10B981;
+      --low-bg: rgba(16, 185, 129, 0.12);
+      --low-border: rgba(16, 185, 129, 0.35);
+
+      --accent: #3B82F6;
+      --accent-glow: rgba(59, 130, 246, 0.25);
+      --purple: #A855F7;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell, "Fira Code", monospace; }
+
+    body {
+      background-color: var(--bg-main);
+      color: var(--text-main);
+      min-height: 100vh;
+      padding-bottom: 60px;
+      overflow-x: hidden;
+    }
+
+    /* Top Navigation Bar */
+    header {
+      background: rgba(15, 23, 42, 0.95);
+      backdrop-filter: blur(12px);
+      border-bottom: 1px solid var(--border-dim);
+      padding: 12px 24px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      position: sticky;
+      top: 0;
+      z-index: 50;
+      gap: 16px;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      cursor: pointer;
+    }
+
+    .logo-icon {
+      width: 36px;
+      height: 36px;
+      background: linear-gradient(135deg, #1E3A8A, #0284C7);
+      border: 1px solid #38BDF8;
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 0 16px rgba(56, 189, 248, 0.3);
+    }
+
+    .brand-title {
+      font-size: 1.15rem;
+      font-weight: 800;
+      letter-spacing: 1px;
+      color: #FFFFFF;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .brand-tag {
+      font-size: 0.68rem;
+      background: rgba(56, 189, 248, 0.15);
+      border: 1px solid rgba(56, 189, 248, 0.4);
+      color: #38BDF8;
+      padding: 2px 7px;
+      border-radius: 4px;
+      font-weight: 700;
+      letter-spacing: 0.5px;
+    }
+
+    /* Mode Switcher Tabs (Risk Engine vs Investigation Engine) */
+    .mode-switch-group {
+      display: flex;
+      background: rgba(11, 17, 32, 0.85);
+      border: 1px solid var(--border-bright);
+      border-radius: 8px;
+      padding: 3px;
+      gap: 3px;
+    }
+
+    .mode-switch-btn {
+      background: transparent;
+      border: none;
+      color: var(--text-muted);
+      padding: 7px 16px;
+      border-radius: 6px;
+      font-size: 0.8rem;
+      font-weight: 700;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      transition: all 0.2s ease;
+    }
+
+    .mode-switch-btn:hover {
+      color: #FFFFFF;
+      background: rgba(255, 255, 255, 0.05);
+    }
+
+    .mode-switch-btn.active {
+      background: #2563EB;
+      color: #FFFFFF;
+      box-shadow: 0 0 12px rgba(37, 99, 235, 0.4);
+    }
+
+    .live-pulse-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: #10B981;
+      box-shadow: 0 0 8px #10B981;
+      animation: pulse 2s infinite;
+    }
+
+    @keyframes pulse {
+      0% { opacity: 0.4; transform: scale(0.9); }
+      50% { opacity: 1; transform: scale(1.2); }
+      100% { opacity: 0.4; transform: scale(0.9); }
+    }
+
+    .header-actions {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .case-selector {
+      background: var(--bg-card);
+      border: 1px solid var(--border-bright);
+      color: var(--text-main);
+      padding: 7px 12px;
+      border-radius: 6px;
+      font-size: 0.82rem;
+      outline: none;
+      cursor: pointer;
+      font-weight: 600;
+    }
+
+    .btn {
+      background: var(--bg-card);
+      color: var(--text-main);
+      border: 1px solid var(--border-bright);
+      padding: 7px 12px;
+      border-radius: 6px;
+      font-size: 0.82rem;
+      font-weight: 600;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      transition: all 0.15s ease;
+    }
+
+    .btn:hover {
+      background: var(--bg-card-hover);
+      border-color: #64748B;
+    }
+
+    .btn-primary {
+      background: #2563EB;
+      border-color: #3B82F6;
+      color: #FFFFFF;
+    }
+
+    .btn-primary:hover {
+      background: #1D4ED8;
+    }
+
+    .btn-accent {
+      background: linear-gradient(135deg, #0284C7, #2563EB);
+      border-color: #38BDF8;
+      color: #FFFFFF;
+      box-shadow: 0 0 10px rgba(56, 189, 248, 0.3);
+    }
+
+    .btn-critical {
+      background: #DC2626;
+      border-color: #EF4444;
+      color: #FFFFFF;
+    }
+
+    /* Page View Toggle */
+    .page-view {
+      display: none;
+    }
+    .page-view.active {
+      display: block;
+    }
+
+    /* Main Container */
+    .container {
+      max-width: 1440px;
+      margin: 18px auto;
+      padding: 0 20px;
+    }
+
+    /* ========================================================
+       RISK ENGINE HERO & SECTIONS (Preserved Feature)
+       ======================================================== */
+    .hero-banner {
+      background: linear-gradient(180deg, rgba(20, 30, 51, 0.7) 0%, rgba(15, 23, 42, 0.4) 100%);
+      border: 1px solid var(--border-dim);
+      border-radius: 12px;
+      padding: 22px 26px;
+      margin-bottom: 22px;
+      display: grid;
+      grid-template-columns: 260px 1fr 320px;
+      gap: 24px;
+      align-items: center;
+      position: relative;
+    }
+
+    .gauge-wrapper {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+    }
+
+    .gauge-svg {
+      transform: rotate(-90deg);
+      width: 180px;
+      height: 180px;
+    }
+
+    .gauge-bg {
+      fill: none;
+      stroke: #1E293B;
+      stroke-width: 14;
+    }
+
+    .gauge-progress {
+      fill: none;
+      stroke-width: 14;
+      stroke-linecap: round;
+      transition: stroke-dashoffset 1.2s cubic-bezier(0.16, 1, 0.3, 1), stroke 0.4s ease;
+    }
+
+    .gauge-content {
+      position: absolute;
+      text-align: center;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .gauge-number {
+      font-size: 3rem;
+      font-weight: 900;
+      line-height: 1;
+      letter-spacing: -1px;
+    }
+
+    .gauge-max {
+      font-size: 0.8rem;
+      color: var(--text-dim);
+      font-weight: 600;
+      margin-top: 2px;
+    }
+
+    .severity-badge {
+      display: inline-block;
+      margin-top: 8px;
+      padding: 4px 12px;
+      border-radius: 9999px;
+      font-weight: 800;
+      font-size: 0.76rem;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      box-shadow: 0 0 12px rgba(0,0,0,0.4);
+    }
+
+    .hero-info h1 {
+      font-size: 1.45rem;
+      font-weight: 800;
+      color: #FFFFFF;
+      margin-bottom: 6px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .meta-pills {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin: 10px 0 14px 0;
+    }
+
+    .meta-pill {
+      background: rgba(30, 41, 59, 0.6);
+      border: 1px solid var(--border-dim);
+      padding: 4px 9px;
+      border-radius: 6px;
+      font-size: 0.78rem;
+      color: var(--text-muted);
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .meta-pill strong { color: var(--text-main); }
+
+    .narrative-box {
+      background: rgba(15, 23, 42, 0.7);
+      border-left: 3px solid #EF4444;
+      padding: 10px 14px;
+      border-radius: 0 8px 8px 0;
+      font-size: 0.85rem;
+      line-height: 1.45;
+      color: #CBD5E1;
+    }
+
+    .hero-controls {
+      background: rgba(15, 23, 42, 0.8);
+      border: 1px solid var(--border-bright);
+      border-radius: 8px;
+      padding: 14px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .hero-controls h3 {
+      font-size: 0.8rem;
+      color: #38BDF8;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .tweak-btn-group {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .tweak-btn {
+      background: var(--bg-card);
+      border: 1px solid var(--border-dim);
+      color: var(--text-muted);
+      padding: 7px 9px;
+      border-radius: 6px;
+      font-size: 0.76rem;
+      text-align: left;
+      cursor: pointer;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      transition: all 0.15s ease;
+    }
+
+    .tweak-btn:hover {
+      background: var(--bg-card-hover);
+      color: var(--text-main);
+      border-color: #475569;
+    }
+
+    .tweak-btn.active {
+      border-color: #38BDF8;
+      background: rgba(56, 189, 248, 0.1);
+      color: #38BDF8;
+    }
+
+    .content-grid {
+      display: grid;
+      grid-template-columns: 1fr 440px;
+      gap: 22px;
+    }
+
+    .card {
+      background: var(--bg-surface);
+      border: 1px solid var(--border-dim);
+      border-radius: 10px;
+      padding: 18px;
+      margin-bottom: 22px;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.25);
+    }
+
+    .card-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 14px;
+      padding-bottom: 10px;
+      border-bottom: 1px solid var(--border-dim);
+    }
+
+    .card-title {
+      font-size: 0.98rem;
+      font-weight: 700;
+      color: #FFFFFF;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .card-subtitle {
+      font-size: 0.75rem;
+      color: var(--text-dim);
+    }
+
+    .drivers-list {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .driver-item {
+      background: var(--bg-card);
+      border: 1px solid var(--border-dim);
+      border-radius: 8px;
+      padding: 12px 14px;
+      display: grid;
+      grid-template-columns: auto 1fr auto;
+      gap: 14px;
+      align-items: center;
+    }
+
+    .driver-rank {
+      font-size: 1.1rem;
+      font-weight: 800;
+      color: var(--text-dim);
+      width: 22px;
+    }
+
+    .driver-info h4 { font-size: 0.88rem; font-weight: 700; color: #F1F5F9; margin-bottom: 2px; }
+    .driver-info p { font-size: 0.78rem; color: var(--text-muted); line-height: 1.35; }
+    .driver-points {
+      font-size: 1.05rem;
+      font-weight: 800;
+      color: #EF4444;
+      background: rgba(239, 68, 68, 0.12);
+      border: 1px solid rgba(239, 68, 68, 0.3);
+      padding: 3px 8px;
+      border-radius: 6px;
+    }
+
+    .bars-container { display: flex; flex-direction: column; gap: 12px; }
+    .bar-row { display: flex; flex-direction: column; gap: 4px; }
+    .bar-labels { display: flex; justify-content: space-between; font-size: 0.8rem; }
+    .bar-labels span:first-child { font-weight: 600; color: #E2E8F0; }
+    .bar-labels span:last-child { font-weight: 700; color: #94A3B8; }
+    .bar-track { height: 8px; background: #1E293B; border-radius: 9999px; overflow: hidden; display: flex; }
+    .bar-fill { height: 100%; border-radius: 9999px; transition: width 0.8s ease; }
+
+    .signals-accordion { display: flex; flex-direction: column; gap: 8px; }
+    .signal-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border-dim);
+      border-radius: 8px;
+      overflow: hidden;
+      transition: all 0.2s ease;
+    }
+    .signal-card.triggered { border-left: 3px solid #EF4444; }
+    .signal-card.not-triggered { border-left: 3px solid #64748B; opacity: 0.8; }
+    .signal-card.unassessable { border-left: 3px solid #F59E0B; }
+    .signal-header {
+      padding: 11px 14px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      cursor: pointer;
+    }
+    .signal-title-group { display: flex; align-items: center; gap: 10px; }
+    .signal-name { font-size: 0.85rem; font-weight: 700; color: #FFFFFF; }
+    .signal-status-pill { font-size: 0.72rem; padding: 2px 7px; border-radius: 4px; font-weight: 700; }
+    .signal-body { padding: 0 14px 14px 14px; display: none; border-top: 1px solid rgba(255, 255, 255, 0.05); }
+    .signal-body.open { display: block; }
+    .evidence-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 8px; }
+    .evidence-item { background: rgba(15, 23, 42, 0.6); padding: 8px; border-radius: 6px; }
+    .evidence-item label { font-size: 0.7rem; color: var(--text-dim); display: block; }
+    .evidence-item span { font-size: 0.82rem; font-weight: 700; color: #F8FAFC; }
+
+    .entity-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; }
+    .entity-tile {
+      background: var(--bg-card);
+      border: 1px solid var(--border-dim);
+      border-radius: 8px;
+      padding: 10px 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 3px;
+      cursor: pointer;
+      transition: all 0.15s ease;
+    }
+    .entity-tile:hover { border-color: #38BDF8; background: var(--bg-card-hover); }
+    .entity-tile label { font-size: 0.7rem; color: var(--text-dim); text-transform: uppercase; font-weight: 700; }
+    .entity-tile .value { font-size: 0.9rem; font-weight: 700; color: #F8FAFC; word-break: break-all; }
+    .entity-tile .sub { font-size: 0.74rem; color: var(--text-muted); }
+
+    .action-tiles { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; }
+    .action-tile {
+      background: var(--bg-card);
+      border: 1px solid var(--border-dim);
+      border-radius: 8px;
+      padding: 10px;
+      cursor: pointer;
+      display: flex;
+      flex-direction: column;
+      gap: 3px;
+      transition: all 0.15s ease;
+    }
+    .action-tile:hover { border-color: #3B82F6; transform: translateY(-2px); }
+    .action-tile strong { font-size: 0.82rem; color: #FFFFFF; }
+    .action-tile span { font-size: 0.72rem; color: var(--text-dim); }
+
+    .tag-badge {
+      display: inline-block;
+      background: rgba(56, 189, 248, 0.12);
+      border: 1px solid rgba(56, 189, 248, 0.3);
+      color: #38BDF8;
+      padding: 2px 7px;
+      border-radius: 4px;
+      font-size: 0.72rem;
+      margin-right: 4px;
+      cursor: pointer;
+    }
+
+    /* ========================================================
+       INVESTIGATION WORKSPACE STYLES (Phase 10 / Workspace UI)
+       ======================================================== */
+    .investigation-header-bar {
+      background: var(--bg-surface);
+      border: 1px solid var(--border-bright);
+      border-radius: 10px;
+      padding: 14px 20px;
+      margin-bottom: 16px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 16px;
+      flex-wrap: wrap;
+    }
+
+    .session-badge-group {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .session-pill {
+      background: rgba(56, 189, 248, 0.12);
+      border: 1px solid rgba(56, 189, 248, 0.4);
+      color: #38BDF8;
+      padding: 4px 10px;
+      border-radius: 6px;
+      font-size: 0.8rem;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .root-pill {
+      background: rgba(239, 68, 68, 0.12);
+      border: 1px solid rgba(239, 68, 68, 0.4);
+      color: #EF4444;
+      padding: 4px 10px;
+      border-radius: 6px;
+      font-size: 0.8rem;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .search-box-wrapper {
+      position: relative;
+      flex: 1;
+      max-width: 380px;
+    }
+
+    .search-input {
+      width: 100%;
+      background: var(--bg-card);
+      border: 1px solid var(--border-bright);
+      color: var(--text-main);
+      padding: 8px 12px 8px 32px;
+      border-radius: 6px;
+      font-size: 0.82rem;
+      outline: none;
+    }
+    .search-input:focus {
+      border-color: #38BDF8;
+      box-shadow: 0 0 10px rgba(56, 189, 248, 0.2);
+    }
+
+    .search-icon {
+      position: absolute;
+      left: 10px;
+      top: 50%;
+      transform: translateY(-50%);
+      color: var(--text-dim);
+      pointer-events: none;
+    }
+
+    .search-dropdown {
+      position: absolute;
+      top: 100%;
+      left: 0;
+      right: 0;
+      background: #0F172A;
+      border: 1px solid var(--border-bright);
+      border-radius: 6px;
+      margin-top: 4px;
+      max-height: 250px;
+      overflow-y: auto;
+      z-index: 60;
+      display: none;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+    }
+
+    .search-dropdown.open { display: block; }
+
+    .search-item {
+      padding: 8px 12px;
+      border-bottom: 1px solid var(--border-dim);
+      cursor: pointer;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 0.8rem;
+    }
+    .search-item:hover { background: var(--bg-card-hover); color: #38BDF8; }
+
+    .depth-control {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      background: var(--bg-card);
+      border: 1px solid var(--border-dim);
+      padding: 4px 8px;
+      border-radius: 6px;
+    }
+
+    .depth-btn {
+      background: transparent;
+      border: 1px solid transparent;
+      color: var(--text-muted);
+      padding: 3px 8px;
+      border-radius: 4px;
+      font-size: 0.76rem;
+      font-weight: 700;
+      cursor: pointer;
+    }
+    .depth-btn.active {
+      background: #2563EB;
+      color: #FFFFFF;
+    }
+
+    /* Investigation Breadcrumbs */
+    .breadcrumbs-bar {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 12px;
+      padding: 6px 12px;
+      background: rgba(15, 23, 42, 0.5);
+      border-radius: 6px;
+      font-size: 0.8rem;
+      color: var(--text-muted);
+      overflow-x: auto;
+    }
+
+    .breadcrumb-item {
+      cursor: pointer;
+      color: #38BDF8;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .breadcrumb-item:hover { text-decoration: underline; }
+    .breadcrumb-sep { color: var(--text-dim); }
+
+    /* Stats Pillbar */
+    .stats-pillbar {
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      gap: 10px;
+      margin-bottom: 16px;
+    }
+
+    .stat-pill {
+      background: var(--bg-surface);
+      border: 1px solid var(--border-dim);
+      border-radius: 8px;
+      padding: 10px 14px;
+      display: flex;
+      flex-direction: column;
+      gap: 3px;
+    }
+    .stat-pill label { font-size: 0.7rem; color: var(--text-dim); font-weight: 700; text-transform: uppercase; }
+    .stat-pill .stat-val { font-size: 1.15rem; font-weight: 800; color: #FFFFFF; }
+
+    /* Filters Bar */
+    .filter-bar {
+      background: var(--bg-surface);
+      border: 1px solid var(--border-dim);
+      border-radius: 8px;
+      padding: 10px 14px;
+      margin-bottom: 16px;
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      flex-wrap: wrap;
+    }
+    .filter-group { display: flex; align-items: center; gap: 8px; }
+    .filter-label { font-size: 0.72rem; color: var(--text-dim); font-weight: 700; text-transform: uppercase; }
+    .filter-chip {
+      background: var(--bg-card);
+      border: 1px solid var(--border-dim);
+      color: var(--text-muted);
+      padding: 3px 9px;
+      border-radius: 4px;
+      font-size: 0.74rem;
+      cursor: pointer;
+      user-select: none;
+      transition: all 0.15s ease;
+    }
+    .filter-chip.active {
+      background: rgba(56, 189, 248, 0.15);
+      border-color: #38BDF8;
+      color: #38BDF8;
+      font-weight: 700;
+    }
+
+    /* Investigation Workspace 2-Column Grid */
+    .investigation-grid {
+      display: grid;
+      grid-template-columns: 1fr 420px;
+      gap: 18px;
+      margin-bottom: 20px;
+    }
+
+    /* Graph Canvas Box */
+    .workspace-canvas-card {
+      background: var(--bg-surface);
+      border: 1px solid var(--border-bright);
+      border-radius: 10px;
+      padding: 16px;
+      display: flex;
+      flex-direction: column;
+      position: relative;
+    }
+
+    .canvas-toolbar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 12px;
+      padding-bottom: 8px;
+      border-bottom: 1px solid var(--border-dim);
+    }
+
+    .canvas-view-tabs {
+      display: flex;
+      gap: 6px;
+    }
+
+    .view-tab-btn {
+      background: var(--bg-card);
+      border: 1px solid var(--border-dim);
+      color: var(--text-muted);
+      padding: 6px 12px;
+      border-radius: 6px;
+      font-size: 0.78rem;
+      font-weight: 700;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .view-tab-btn.active {
+      background: #2563EB;
+      color: #FFFFFF;
+      border-color: #3B82F6;
+    }
+
+    .graph-svg-container {
+      width: 100%;
+      height: 520px;
+      background: #070B14;
+      border: 1px solid var(--border-dim);
+      border-radius: 8px;
+      position: relative;
+      overflow: hidden;
+      cursor: grab;
+    }
+    .graph-svg-container:active { cursor: grabbing; }
+
+    .graph-controls-overlay {
+      position: absolute;
+      top: 12px;
+      right: 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      z-index: 20;
+    }
+    .ctrl-btn {
+      width: 32px;
+      height: 32px;
+      background: rgba(15, 23, 42, 0.9);
+      border: 1px solid var(--border-bright);
+      color: var(--text-main);
+      border-radius: 6px;
+      font-weight: 800;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .ctrl-btn:hover { background: #1E293B; color: #38BDF8; }
+
+    .graph-legend-bar {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      margin-top: 10px;
+      font-size: 0.74rem;
+      color: var(--text-dim);
+      flex-wrap: wrap;
+    }
+    .legend-item { display: flex; align-items: center; gap: 5px; }
+    .legend-dot { width: 10px; height: 10px; border-radius: 3px; }
+
+    /* Path View ("Connect the Dots") */
+    .path-view-container {
+      display: none;
+      padding: 10px 0;
+      overflow-y: auto;
+      max-height: 520px;
+    }
+    .path-view-container.active { display: block; }
+
+    .path-step-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border-dim);
+      border-radius: 8px;
+      padding: 14px;
+      margin-bottom: 8px;
+      display: grid;
+      grid-template-columns: 80px 1fr auto;
+      gap: 14px;
+      align-items: center;
+    }
+    .path-step-card.suspicious { border-left: 3px solid #F97316; }
+    .path-step-card.high-risk { border-left: 3px solid #EF4444; }
+
+    .path-hop-badge {
+      font-size: 0.72rem;
+      font-weight: 800;
+      color: #38BDF8;
+      background: rgba(56, 189, 248, 0.1);
+      border: 1px solid rgba(56, 189, 248, 0.3);
+      padding: 4px 8px;
+      border-radius: 4px;
+      text-align: center;
+    }
+
+    .path-connector-arrow {
+      text-align: center;
+      color: #F97316;
+      font-weight: 900;
+      margin: 4px 0;
+    }
+
+    /* Right Inspector Panel */
+    .inspector-panel {
+      background: var(--bg-surface);
+      border: 1px solid var(--border-bright);
+      border-radius: 10px;
+      padding: 18px;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+      max-height: 610px;
+      overflow-y: auto;
+    }
+
+    .inspector-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      border-bottom: 1px solid var(--border-dim);
+      padding-bottom: 12px;
+    }
+
+    .inspector-title {
+      font-size: 1.1rem;
+      font-weight: 800;
+      color: #FFFFFF;
+    }
+    .inspector-type {
+      font-size: 0.72rem;
+      color: var(--text-dim);
+      text-transform: uppercase;
+      font-weight: 700;
+    }
+
+    .inspector-metrics-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+    }
+    .metric-box {
+      background: var(--bg-card);
+      border: 1px solid var(--border-dim);
+      border-radius: 6px;
+      padding: 8px 10px;
+    }
+    .metric-box label { font-size: 0.68rem; color: var(--text-dim); text-transform: uppercase; font-weight: 700; display: block; }
+    .metric-box span { font-size: 0.88rem; font-weight: 800; color: #F8FAFC; }
+
+    .inspector-actions-group {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .inspector-conn-list {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      max-height: 180px;
+      overflow-y: auto;
+    }
+    .conn-row {
+      background: var(--bg-card);
+      border: 1px solid var(--border-dim);
+      border-radius: 6px;
+      padding: 8px 10px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      cursor: pointer;
+      font-size: 0.78rem;
+    }
+    .conn-row:hover { border-color: #38BDF8; }
+
+    /* Account Transaction History Table */
+    .history-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.74rem;
+      margin-top: 8px;
+    }
+    .history-table th {
+      text-align: left;
+      color: var(--text-dim);
+      border-bottom: 1px solid var(--border-dim);
+      padding: 6px 8px;
+      font-weight: 700;
+      text-transform: uppercase;
+    }
+    .history-table td {
+      padding: 6px 8px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+      color: #CBD5E1;
+    }
+    .history-table tr:hover td { background: var(--bg-card-hover); cursor: pointer; color: #38BDF8; }
+
+    /* Edge Evidence Inspector Box */
+    .edge-inspector-box {
+      background: rgba(15, 23, 42, 0.9);
+      border: 1px solid #F97316;
+      border-radius: 8px;
+      padding: 12px;
+      font-size: 0.8rem;
+    }
+
+    /* Bottom Workspace Findings Drawer */
+    .bottom-drawer {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 18px;
+      margin-top: 14px;
+    }
+
+    .drawer-card {
+      background: var(--bg-surface);
+      border: 1px solid var(--border-dim);
+      border-radius: 10px;
+      padding: 16px;
+    }
+
+    .summary-headline {
+      font-size: 0.95rem;
+      font-weight: 800;
+      color: #EF4444;
+      margin-bottom: 8px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .summary-text {
+      font-size: 0.82rem;
+      line-height: 1.5;
+      color: #CBD5E1;
+      white-space: pre-line;
+      background: rgba(11, 17, 32, 0.5);
+      border-radius: 6px;
+      padding: 12px;
+      border-left: 3px solid #38BDF8;
+    }
+
+    .audit-trail-list {
+      max-height: 160px;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      font-family: monospace;
+      font-size: 0.74rem;
+    }
+    .audit-entry {
+      background: rgba(11, 17, 32, 0.6);
+      padding: 4px 8px;
+      border-radius: 4px;
+      color: var(--text-muted);
+      border-left: 2px solid #38BDF8;
+    }
+
+    /* Modal (Evidence Pack) */
+    .modal-backdrop {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.85);
+      backdrop-filter: blur(8px);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 100;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.2s ease;
+    }
+    .modal-backdrop.open { opacity: 1; pointer-events: auto; }
+
+    .modal-card {
+      background: #0F172A;
+      border: 1px solid var(--border-bright);
+      border-radius: 12px;
+      width: 90%;
+      max-width: 820px;
+      max-height: 85vh;
+      overflow-y: auto;
+      padding: 26px;
+      box-shadow: 0 20px 50px rgba(0,0,0,0.7);
+    }
+
+    .dossier-header {
+      border-bottom: 2px solid #EF4444;
+      padding-bottom: 14px;
+      margin-bottom: 16px;
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+    }
+    .dossier-seal {
+      font-size: 0.7rem;
+      color: #EF4444;
+      border: 1px solid #EF4444;
+      padding: 4px 10px;
+      border-radius: 4px;
+      font-weight: 800;
+      letter-spacing: 1px;
+    }
+    .dossier-hash {
+      background: #090D16;
+      border: 1px solid var(--border-dim);
+      padding: 10px;
+      border-radius: 6px;
+      font-family: monospace;
+      font-size: 0.74rem;
+      color: #38BDF8;
+      word-break: break-all;
+      margin-top: 14px;
+    }
+
+    @media (max-width: 1080px) {
+      .hero-banner { grid-template-columns: 1fr; }
+      .content-grid { grid-template-columns: 1fr; }
+      .investigation-grid { grid-template-columns: 1fr; }
+      .bottom-drawer { grid-template-columns: 1fr; }
+      .stats-pillbar { grid-template-columns: repeat(2, 1fr); }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Top Header -->
+  <header>
+    <div class="brand" onclick="switchMainMode('risk')">
+      <div class="logo-icon">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#FFFFFF" stroke-width="2.5">
+          <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+        </svg>
+      </div>
+      <div>
+        <div class="brand-title">
+          FRAUDNEXUS
+          <span class="brand-tag">MUMBAI INTELLIGENCE ENGINE</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Main Mode Switcher -->
+    <div class="mode-switch-group">
+      <button id="btn-mode-risk" class="mode-switch-btn active" onclick="switchMainMode('risk')">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
+        EXPLAINABLE RISK ENGINE
+      </button>
+      <button id="btn-mode-investigation" class="mode-switch-btn" onclick="switchMainMode('investigation')">
+        <div class="live-pulse-dot"></div>
+        INVESTIGATION & TRACE FRAUD
+      </button>
+    </div>
+
+    <!-- Global Scenario Selector & Dossier -->
+    <div class="header-actions">
+      <select id="case-select" class="case-selector" onchange="switchTransaction(this.value)">
+        <option value="TXN-48291">TXN-48291 — Mumbai Mule Syndicate (CRITICAL: 94)</option>
+        <option value="TXN-10021">TXN-10021 — Clean Normal Retail (Empty Network)</option>
+        <option value="TXN-LOW-001">TXN-LOW-001 — Clean Salary Transfer (LOW: 10)</option>
+        <option value="TXN-MED-002">TXN-MED-002 — E-Commerce Anomaly (MEDIUM: 59)</option>
+        <option value="TXN-HIGH-003">TXN-HIGH-003 — Device Cluster Ring (HIGH: 69)</option>
+        <option value="TXN-MISSING-004">TXN-MISSING-004 — ATM Cash-In (NOT ASSESSABLE)</option>
+      </select>
+
+      <button class="btn btn-accent" onclick="openEvidencePack()">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+        Evidence Dossier
+      </button>
+    </div>
+  </header>
+
+  <!-- ========================================================
+       PAGE 1: EXPLAINABLE RISK ENGINE VIEW (Preserved 100%)
+       ======================================================== -->
+  <div id="risk-engine-view" class="page-view active">
+    <main class="container">
+      <!-- HERO ASSESSMENT BANNER -->
+      <section class="hero-banner">
+        <div class="gauge-wrapper">
+          <svg class="gauge-svg" viewBox="0 0 160 160">
+            <circle class="gauge-bg" cx="80" cy="80" r="66" />
+            <circle id="gauge-arc" class="gauge-progress" cx="80" cy="80" r="66"
+                    stroke-dasharray="414.69" stroke-dashoffset="414.69" stroke="#EF4444" />
+          </svg>
+          <div class="gauge-content">
+            <div id="score-num" class="gauge-number" style="color: #EF4444;">0</div>
+            <div class="gauge-max">/ 100 RISK SCORE</div>
+            <div id="severity-badge" class="severity-badge" style="background: var(--critical-bg); color: var(--critical); border: 1px solid var(--critical-border);">
+              CRITICAL
+            </div>
+          </div>
+        </div>
+
+        <div class="hero-info">
+          <h1 id="txn-header-title">
+            <span id="txn-id-label">TXN-48291</span>
+            <span id="confidence-pill" style="font-size: 0.72rem; padding: 3px 8px; border-radius: 4px; background: rgba(59, 130, 246, 0.15); border: 1px solid rgba(59, 130, 246, 0.4); color: #60A5FA; font-weight: 700;">
+              CONFIDENCE: HIGH
+            </span>
+          </h1>
+          
+          <div class="meta-pills">
+            <div class="meta-pill">Amount: <strong id="meta-amount">₹48,500.00</strong></div>
+            <div class="meta-pill">Rail: <strong>UPI Real-Time</strong></div>
+            <div class="meta-pill">Case: <strong id="meta-case">CASE-2026-018</strong></div>
+            <div class="meta-pill">Audit ID: <strong id="meta-audit" style="font-family: monospace;">RISK-2026-8D5786</strong></div>
+          </div>
+
+          <div class="narrative-box" id="narrative-text">
+            Evaluating evidence across hardware multi-tenancy, transaction velocity, payment graph clustering, and historical cybercrime intelligence...
+          </div>
+
+          <div style="margin-top: 14px; display: flex; gap: 10px;">
+            <button class="btn btn-primary" onclick="launchInvestigationFromRisk()">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+              TRACE IN INVESTIGATION ENGINE ➔
+            </button>
+            <button class="btn" onclick="recalculateCurrent()">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67"/></svg>
+              Recalculate
+            </button>
+          </div>
+        </div>
+
+        <div class="hero-controls">
+          <h3>
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
+            Judge "What-If" Sandbox
+          </h3>
+          <p style="font-size: 0.72rem; color: var(--text-dim); line-height: 1.2;">
+            Mutate database evidence live to prove dynamic recalculation:
+          </p>
+          <div class="tweak-btn-group">
+            <button id="btn-tweak-dev" class="tweak-btn" onclick="executeTweak('unlink_device', 'relink_device', this)">
+              <span>Unlink 4 Accounts from DEV-204</span>
+              <strong style="color: #F87171;">-20 pts</strong>
+            </button>
+            <button id="btn-tweak-fraud" class="tweak-btn" onclick="executeTweak('clear_fraud_links', 'restore_fraud_links', this)">
+              <span>Clear FIR 402/2026 Record</span>
+              <strong style="color: #F87171;">-25 pts</strong>
+            </button>
+            <button id="btn-tweak-vel" class="tweak-btn" onclick="executeTweak('normalize_velocity', 'restore_velocity', this)">
+              <span>Normalize 2-Hour Velocity</span>
+              <strong style="color: #F87171;">-18 pts</strong>
+            </button>
+            <button class="tweak-btn" style="border-color: #38BDF8; color: #38BDF8; justify-content: center; font-weight: 700;" onclick="resetDemoState()">
+              Reset All Evidence to Benchmark (94)
+            </button>
+          </div>
+        </div>
+      </section>
+
+      <!-- CONTENT TWO-COLUMN GRID -->
+      <div class="content-grid">
+        <div>
+          <!-- WHY THIS SCORE -->
+          <section class="card">
+            <div class="card-header">
+              <div>
+                <div class="card-title">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#EF4444" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+                  WHY THIS SCORE?
+                </div>
+                <div class="card-subtitle">Primary Risk Drivers evaluated from observable entity relationships</div>
+              </div>
+              <span style="font-size: 0.75rem; color: #94A3B8; font-weight: 600;">Weighted Convergence Model</span>
+            </div>
+            <div id="drivers-container" class="drivers-list"></div>
+          </section>
+
+          <!-- INDEPENDENT SIGNAL EVIDENCE CARDS -->
+          <section class="card">
+            <div class="card-header">
+              <div>
+                <div class="card-title">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#38BDF8" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18"/><path d="M9 21V9"/></svg>
+                  INDEPENDENT SIGNAL EVIDENCE CARDS
+                </div>
+                <div class="card-subtitle">Every score point is backed by verifiable telemetry and graph links</div>
+              </div>
+              <span style="font-size: 0.75rem; color: var(--text-dim);">Click card to inspect evidence</span>
+            </div>
+            <div id="signals-container" class="signals-accordion"></div>
+          </section>
+        </div>
+
+        <div>
+          <!-- RISK CONTRIBUTION BREAKDOWN -->
+          <section class="card">
+            <div class="card-header">
+              <div>
+                <div class="card-title">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#F59E0B" stroke-width="2"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+                  RISK CONTRIBUTION BREAKDOWN
+                </div>
+                <div class="card-subtitle">Exact point contribution vs maximum signal weights</div>
+              </div>
+            </div>
+            <div id="bars-container" class="bars-container"></div>
+          </section>
+
+          <!-- CONTRIBUTING ENTITIES MATRIX -->
+          <section class="card">
+            <div class="card-header">
+              <div>
+                <div class="card-title">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#38BDF8" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+                  ENTITIES CONTRIBUTING TO RISK
+                </div>
+                <div class="card-subtitle">Click entity to launch deep investigation</div>
+              </div>
+            </div>
+            <div id="entities-container" class="entity-grid"></div>
+          </section>
+
+          <!-- RECOMMENDED ACTIONS -->
+          <section class="card">
+            <div class="card-header">
+              <div>
+                <div class="card-title">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#10B981" stroke-width="2"><polyline points="9 11 12 14 22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
+                  RECOMMENDED NEXT STEPS
+                </div>
+                <div class="card-subtitle">Actionable workflow prescribed by Risk Engine</div>
+              </div>
+            </div>
+            <div id="actions-container" class="action-tiles"></div>
+          </section>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <!-- ========================================================
+       PAGE 2: INVESTIGATION & TRACE FRAUD WORKSPACE (New Feature)
+       ======================================================== -->
+  <div id="investigation-engine-view" class="page-view">
+    <main class="container">
+      
+      <!-- TOP CONTROL & SEARCH HEADER -->
+      <div class="investigation-header-bar">
+        <div class="session-badge-group">
+          <div id="inv-session-badge" class="session-pill">
+            <div class="live-pulse-dot"></div>
+            <span id="inv-session-id">INV-2026-001</span>
+          </div>
+
+          <div id="inv-root-badge" class="root-pill">
+            ROOT: <strong id="inv-root-id">TXN-48291</strong>
+            <span id="inv-root-risk" style="font-size: 0.68rem; background: #EF4444; color: #FFF; padding: 1px 5px; border-radius: 3px;">CRITICAL</span>
+          </div>
+        </div>
+
+        <!-- Entity Search with Autocomplete -->
+        <div class="search-box-wrapper">
+          <svg class="search-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+          <input type="text" id="entity-search-input" class="search-input" placeholder="Search Entity (TXN, ACC, DEV, UPI, Case)..." oninput="onSearchInput(this.value)">
+          <div id="search-dropdown-menu" class="search-dropdown"></div>
+        </div>
+
+        <!-- Investigation Hop Depth Selector -->
+        <div class="depth-control">
+          <span style="font-size: 0.72rem; color: var(--text-dim); font-weight: 700; margin-right: 4px;">DEPTH:</span>
+          <button class="depth-btn" onclick="setInvestigationDepth(1)">1</button>
+          <button class="depth-btn" onclick="setInvestigationDepth(2)">2</button>
+          <button class="depth-btn active" onclick="setInvestigationDepth(3)">3</button>
+          <button class="depth-btn" onclick="setInvestigationDepth(4)">4</button>
+          <button class="depth-btn" onclick="setInvestigationDepth(5)">5</button>
+        </div>
+
+        <!-- Action Links -->
+        <div style="display: flex; gap: 8px;">
+          <button class="btn btn-primary" onclick="traceSuspiciousPathToCase()">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+            Trace Suspicious Path
+          </button>
+          <button class="btn" onclick="switchMainMode('risk')">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>
+            Risk Score
+          </button>
+        </div>
+      </div>
+
+      <!-- INVESTIGATION BREADCRUMBS -->
+      <div id="breadcrumbs-container" class="breadcrumbs-bar">
+        <span class="breadcrumb-item" onclick="resetInvestigationBreadcrumbs()">Root Investigation</span>
+        <span class="breadcrumb-sep">➔</span>
+        <span class="breadcrumb-item" id="crumb-root">TXN-48291</span>
+      </div>
+
+      <!-- STATS PILLBAR -->
+      <div class="stats-pillbar">
+        <div class="stat-pill">
+          <label>Discovered Entities</label>
+          <span class="stat-val" id="stat-entities" style="color: #38BDF8;">0</span>
+        </div>
+        <div class="stat-pill">
+          <label>Verified Relationships</label>
+          <span class="stat-val" id="stat-edges" style="color: #94A3B8;">0</span>
+        </div>
+        <div class="stat-pill">
+          <label>Suspicious Connections</label>
+          <span class="stat-val" id="stat-suspicious" style="color: #F97316;">0</span>
+        </div>
+        <div class="stat-pill">
+          <label>Police / FIR Links</label>
+          <span class="stat-val" id="stat-fraud-links" style="color: #EF4444;">0</span>
+        </div>
+        <div class="stat-pill">
+          <label>Max Hop Distance</label>
+          <span class="stat-val" id="stat-max-hops" style="color: #A855F7;">0</span>
+        </div>
+      </div>
+
+      <!-- FILTER BAR -->
+      <div class="filter-bar">
+        <div class="filter-group">
+          <span class="filter-label">Entities:</span>
+          <span class="filter-chip active" onclick="toggleFilter('type', 'ACCOUNT', this)">Accounts</span>
+          <span class="filter-chip active" onclick="toggleFilter('type', 'TRANSACTION', this)">Transactions</span>
+          <span class="filter-chip active" onclick="toggleFilter('type', 'DEVICE', this)">Devices</span>
+          <span class="filter-chip active" onclick="toggleFilter('type', 'UPI', this)">UPIs</span>
+          <span class="filter-chip active" onclick="toggleFilter('type', 'PHONE', this)">Phones</span>
+          <span class="filter-chip active" onclick="toggleFilter('type', 'BENEFICIARY', this)">Beneficiaries</span>
+          <span class="filter-chip active" onclick="toggleFilter('type', 'FRAUD_CASE', this)">Cases</span>
+        </div>
+        <div class="filter-group">
+          <span class="filter-label">Risk:</span>
+          <span class="filter-chip active" onclick="toggleFilter('risk', 'CRITICAL', this)">Critical</span>
+          <span class="filter-chip active" onclick="toggleFilter('risk', 'HIGH', this)">High</span>
+          <span class="filter-chip active" onclick="toggleFilter('risk', 'MEDIUM', this)">Medium</span>
+          <span class="filter-chip active" onclick="toggleFilter('risk', 'LOW', this)">Low</span>
+        </div>
+      </div>
+
+      <!-- WORKSPACE 2-COLUMN GRID -->
+      <div class="investigation-grid">
+        
+        <!-- LEFT: Graph Visualizer Canvas / Path View / Timeline View -->
+        <div class="workspace-canvas-card">
+          <div class="canvas-toolbar">
+            <div class="canvas-view-tabs">
+              <button id="tab-btn-network" class="view-tab-btn active" onclick="switchInvestigationView('network')">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>
+                NETWORK VIEW
+              </button>
+              <button id="tab-btn-path" class="view-tab-btn" onclick="switchInvestigationView('path')">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+                PATH VIEW ("CONNECT THE DOTS")
+              </button>
+              <button id="tab-btn-timeline" class="view-tab-btn" onclick="switchInvestigationView('timeline')">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                TIMELINE VIEW
+              </button>
+            </div>
+
+            <div style="display: flex; gap: 8px;">
+              <button class="btn" style="font-size: 0.75rem; padding: 4px 8px;" onclick="resetGraphFocus()">Clear Focus</button>
+              <button class="btn" style="font-size: 0.75rem; padding: 4px 8px;" onclick="fitGraphView()">Fit View</button>
+            </div>
+          </div>
+
+          <!-- NETWORK GRAPH CANVAS -->
+          <div id="graph-view-canvas" class="graph-svg-container">
+            <div class="graph-controls-overlay">
+              <button class="ctrl-btn" onclick="zoomGraph(1.2)" title="Zoom In">+</button>
+              <button class="ctrl-btn" onclick="zoomGraph(0.8)" title="Zoom Out">−</button>
+              <button class="ctrl-btn" onclick="resetGraphTransform()" title="Reset View">↺</button>
+            </div>
+            <svg id="investigation-svg" width="100%" height="100%"></svg>
+          </div>
+
+          <!-- PATH VIEW -->
+          <div id="path-view-container" class="path-view-container"></div>
+
+          <!-- TIMELINE VIEW -->
+          <div id="timeline-view-container" class="path-view-container"></div>
+
+          <!-- Legend Bar -->
+          <div class="graph-legend-bar">
+            <span class="legend-item"><span class="legend-dot" style="background: #F97316;"></span> Shared Device</span>
+            <span class="legend-item"><span class="legend-dot" style="background: #1E3A8A; border: 1px solid #38BDF8;"></span> Account</span>
+            <span class="legend-item"><span class="legend-dot" style="background: #DC2626;"></span> Police FIR Case</span>
+            <span class="legend-item"><span class="legend-dot" style="background: #0284C7;"></span> UPI VPA</span>
+            <span class="legend-item"><span class="legend-dot" style="background: #8B5CF6;"></span> Beneficiary</span>
+            <span class="legend-item"><span class="legend-dot" style="background: #EF4444;"></span> Transaction</span>
+            <span style="margin-left: auto; color: #94A3B8;">Click node to inspect • Double-click to expand connections</span>
+          </div>
+        </div>
+
+        <!-- RIGHT: Entity Details Inspector Panel -->
+        <div class="inspector-panel" id="inspector-panel">
+          <div class="inspector-header">
+            <div>
+              <div class="inspector-type" id="insp-type">ACCOUNT</div>
+              <div class="inspector-title" id="insp-id">ACC-104</div>
+            </div>
+            <span id="insp-risk-badge" class="severity-badge" style="background: var(--critical-bg); color: var(--critical); border: 1px solid var(--critical-border);">
+              CRITICAL
+            </span>
+          </div>
+
+          <!-- Dynamic Metrics Grid -->
+          <div class="inspector-metrics-grid" id="insp-metrics"></div>
+
+          <!-- Action Buttons -->
+          <div class="inspector-actions-group">
+            <button class="btn btn-primary" onclick="investigateSelectedEntity()">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+              INVESTIGATE FROM HERE
+            </button>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 6px;">
+              <button class="btn" onclick="expandCurrentNodeConnections()">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                Expand (+1 Hop)
+              </button>
+              <button class="btn" onclick="markCurrentEntityImportant()">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+                Mark Important
+              </button>
+            </div>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 6px;">
+              <button class="btn" onclick="addCurrentEntityAsEvidence()">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/></svg>
+                Add to Evidence
+              </button>
+              <button class="btn" id="btn-insp-view-risk" onclick="viewRiskFromSelected()">
+                View Risk Score
+              </button>
+            </div>
+          </div>
+
+          <!-- Connected Entities Matrix -->
+          <div>
+            <div style="font-size: 0.74rem; color: var(--text-dim); text-transform: uppercase; font-weight: 700; margin-bottom: 6px;">
+              Direct Connected Entities:
+            </div>
+            <div id="insp-connections-list" class="inspector-conn-list"></div>
+          </div>
+
+          <!-- Account Transaction History Table -->
+          <div id="insp-history-wrapper" style="display: none;">
+            <div style="font-size: 0.74rem; color: var(--text-dim); text-transform: uppercase; font-weight: 700; margin-bottom: 6px;">
+              Account Transaction Trail (Click to Trace):
+            </div>
+            <table class="history-table">
+              <thead>
+                <tr><th>Time</th><th>Amount</th><th>Beneficiary</th><th>Risk</th></tr>
+              </thead>
+              <tbody id="insp-history-body"></tbody>
+            </table>
+          </div>
+
+          <!-- Selected Edge Inspector (When edge clicked) -->
+          <div id="insp-edge-box" class="edge-inspector-box" style="display: none;">
+            <h4 style="color: #F97316; font-size: 0.82rem; margin-bottom: 4px;">CONNECTION EVIDENCE</h4>
+            <div id="edge-evidence-text" style="color: #E2E8F0; font-size: 0.78rem; line-height: 1.4;"></div>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- BOTTOM WORKSPACE FINDINGS & AUDIT DRAWER -->
+      <div class="bottom-drawer">
+        
+        <!-- LEFT: Factual Investigation Summary -->
+        <div class="drawer-card">
+          <div class="summary-headline">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#EF4444" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+            <span id="summary-headline-text">EVIDENCE-BACKED INVESTIGATION SUMMARY</span>
+          </div>
+          <div class="summary-text" id="summary-narrative">
+            Loading investigation findings from authoritative graph traversal...
+          </div>
+
+          <!-- Shortest Path Trace Widget -->
+          <div style="margin-top: 14px; background: var(--bg-card); padding: 10px; border-radius: 6px; border: 1px solid var(--border-dim);">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+              <span style="font-size: 0.74rem; color: #38BDF8; font-weight: 700;">SHORTEST SUSPICIOUS PATH TRACER:</span>
+              <span id="path-stats-badge" style="font-size: 0.7rem; color: #F97316; font-weight: 700;"></span>
+            </div>
+            <div id="shortest-path-display" style="font-size: 0.78rem; color: #CBD5E1; font-family: monospace;">
+              Click 'Trace Suspicious Path' to locate connecting chain to cybercrime records.
+            </div>
+          </div>
+        </div>
+
+        <!-- RIGHT: Investigation Findings, Notes, and Audit Trail -->
+        <div class="drawer-card">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+            <div class="card-title">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#38BDF8" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/></svg>
+              SESSION FINDINGS & AUDIT TRAIL
+            </div>
+            <div style="display: flex; gap: 6px;">
+              <button class="btn btn-primary" style="font-size: 0.72rem; padding: 4px 8px;" onclick="createCaseFromSession()">Create Case</button>
+              <button class="btn btn-accent" style="font-size: 0.72rem; padding: 4px 8px;" onclick="openEvidencePack()">Generate Evidence Pack</button>
+            </div>
+          </div>
+
+          <!-- Marked Findings Chips -->
+          <div style="margin-bottom: 8px;">
+            <span style="font-size: 0.7rem; color: var(--text-dim); text-transform: uppercase; font-weight: 700;">Marked Leads:</span>
+            <div id="session-findings-chips" style="display: flex; flex-wrap: wrap; gap: 4px; margin-top: 4px;">
+              <span style="font-size: 0.74rem; color: var(--text-dim);">No entities marked yet. Click 'Mark Important' on any node.</span>
+            </div>
+          </div>
+
+          <!-- Investigator Note Input -->
+          <div style="display: flex; gap: 6px; margin-bottom: 10px;">
+            <input type="text" id="investigator-note-input" class="search-input" style="padding: 6px 10px;" placeholder="Add investigator note (e.g. DEV-204 shared by 6 accounts)...">
+            <button class="btn btn-primary" style="padding: 6px 12px; font-size: 0.76rem;" onclick="saveInvestigatorNote()">Save Note</button>
+          </div>
+
+          <!-- Real-Time Audit Log -->
+          <span style="font-size: 0.7rem; color: var(--text-dim); text-transform: uppercase; font-weight: 700; display: block; margin-bottom: 4px;">Real-Time Investigation Audit Log:</span>
+          <div id="session-audit-list" class="audit-trail-list"></div>
+        </div>
+
+      </div>
+
+    </main>
+  </div>
+
+  <!-- FORMAL EVIDENCE DOSSIER MODAL -->
+  <div id="evidence-modal" class="modal-backdrop" onclick="if(event.target===this) closeEvidencePack()">
+    <div class="modal-card">
+      <div class="dossier-header">
+        <div>
+          <h2 style="color: #FFFFFF; font-size: 1.25rem; margin-bottom: 4px;">FRAUDNEXUS EVIDENCE DOSSIER</h2>
+          <p style="font-size: 0.78rem; color: var(--text-dim);">OFFICIAL INTELLIGENCE REPORT FOR CYBER CELL INVESTIGATION</p>
+        </div>
+        <div class="dossier-seal">OFFICIALLY SEALED</div>
+      </div>
+
+      <div id="dossier-content"></div>
+
+      <div style="margin-top: 20px; display: flex; justify-content: flex-end; gap: 10px;">
+        <button class="btn" onclick="window.print()">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>
+          Print / Save PDF
+        </button>
+        <button class="btn btn-primary" onclick="closeEvidencePack()">Close</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // Global Application State
+    let currentMode = "risk"; // "risk" | "investigation"
+    let currentTxnId = "TXN-48291";
+    let currentEntityId = "TXN-48291";
+    let currentEntityType = "TRANSACTION";
+    let currentDepth = 3;
+    let currentInvestigationId = "INV-2026-001";
+    let assessmentData = null;
+    let graphData = null;
+    let selectedNodeId = null;
+    let selectedEdgeId = null;
+    let activeFilters = {
+      type: new Set(["ACCOUNT", "TRANSACTION", "DEVICE", "UPI", "PHONE", "BENEFICIARY", "FRAUD_CASE"]),
+      risk: new Set(["CRITICAL", "HIGH", "MEDIUM", "LOW"])
+    };
+    let breadcrumbTrail = [];
+    let zoomLevel = 1.0;
+    let panOffset = { x: 0, y: 0 };
+    let isDraggingCanvas = false;
+    let dragStart = { x: 0, y: 0 };
+    let currentViewMode = "network"; // "network" | "path" | "timeline"
+
+    const API_BASE = window.location.origin.includes("http") ? "" : "http://localhost:8000";
+
+    // MODE SWITCHER
+    function switchMainMode(mode) {
+      currentMode = mode;
+      document.getElementById("btn-mode-risk").classList.toggle("active", mode === "risk");
+      document.getElementById("btn-mode-investigation").classList.toggle("active", mode === "investigation");
+
+      document.getElementById("risk-engine-view").classList.toggle("active", mode === "risk");
+      document.getElementById("investigation-engine-view").classList.toggle("active", mode === "investigation");
+
+      if (mode === "investigation" && (!graphData || graphData.root.id !== currentEntityId)) {
+        loadInvestigation(currentEntityType, currentEntityId, currentDepth);
+      }
+    }
+
+    function launchInvestigationFromRisk() {
+      currentEntityId = currentTxnId;
+      currentEntityType = "TRANSACTION";
+      switchMainMode("investigation");
+      loadInvestigation("TRANSACTION", currentTxnId, currentDepth);
+    }
+
+    // ========================================================
+    // INVESTIGATION ENGINE LOGIC
+    // ========================================================
+
+    async function loadInvestigation(entityType, entityId, depth = 3) {
+      currentEntityId = entityId;
+      currentEntityType = entityType;
+      currentDepth = depth;
+
+      // Update breadcrumbs
+      if (!breadcrumbTrail.find(b => b.id === entityId)) {
+        breadcrumbTrail.push({ type: entityType, id: entityId });
+      }
+      renderBreadcrumbs();
+
+      try {
+        let endpoint = `${API_BASE}/api/investigation/entity/${entityType}/${entityId}?depth=${depth}`;
+        if (entityType.toUpperCase() === "TRANSACTION") {
+          endpoint = `${API_BASE}/api/investigation/transaction/${entityId}?depth=${depth}`;
+        }
+        const res = await fetch(endpoint);
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        const data = await res.json();
+        graphData = data;
+        currentInvestigationId = data.investigation_id;
+
+        // Render Investigation Top Bar & Stats
+        document.getElementById("inv-session-id").innerText = data.investigation_id;
+        document.getElementById("inv-root-id").innerText = data.root.id;
+        const rootRiskBadge = document.getElementById("inv-root-risk");
+        rootRiskBadge.innerText = data.root.risk;
+        rootRiskBadge.style.background = data.root.risk === "CRITICAL" ? "#EF4444" : (data.root.risk === "HIGH" ? "#F97316" : "#10B981");
+
+        document.getElementById("stat-entities").innerText = data.nodes.length;
+        document.getElementById("stat-edges").innerText = data.edges.length;
+        document.getElementById("stat-suspicious").innerText = data.risk_summary.suspicious_connections_count || 0;
+        document.getElementById("stat-fraud-links").innerText = data.risk_summary.previous_fraud_links_count || 0;
+        document.getElementById("stat-max-hops").innerText = `${data.risk_summary.max_hop_distance || depth} Hops`;
+
+        // Render Summary Drawer
+        const sumHeadline = document.getElementById("summary-headline-text");
+        const sumNarrative = document.getElementById("summary-narrative");
+        sumHeadline.innerText = data.risk_summary.headline || "INVESTIGATION SUMMARY";
+        sumNarrative.innerText = data.risk_summary.narrative || "No narrative generated.";
+
+        // Default select root node
+        selectedNodeId = data.root.id;
+        inspectNode(data.root.id);
+
+        // Render active view
+        renderGraphView();
+        renderPathView();
+        renderTimelineView();
+        loadSessionDetails(data.investigation_id);
+
+      } catch (err) {
+        console.error("Failed to load investigation:", err);
+      }
+    }
+
+    function setInvestigationDepth(d) {
+      currentDepth = d;
+      document.querySelectorAll(".depth-btn").forEach((b, idx) => {
+        b.classList.toggle("active", idx + 1 === d);
+      });
+      loadInvestigation(currentEntityType, currentEntityId, d);
+    }
+
+    function switchInvestigationView(view) {
+      currentViewMode = view;
+      document.getElementById("tab-btn-network").classList.toggle("active", view === "network");
+      document.getElementById("tab-btn-path").classList.toggle("active", view === "path");
+      document.getElementById("tab-btn-timeline").classList.toggle("active", view === "timeline");
+
+      document.getElementById("graph-view-canvas").style.display = view === "network" ? "block" : "none";
+      document.getElementById("path-view-container").classList.toggle("active", view === "path");
+      document.getElementById("timeline-view-container").classList.toggle("active", view === "timeline");
+    }
+
+    // ========================================================
+    // INTERACTIVE FORCE-DIRECTED / RADIAL GRAPH RENDERER
+    // ========================================================
+
+    function renderGraphView() {
+      if (!graphData) return;
+      const svg = document.getElementById("investigation-svg");
+      const container = document.getElementById("graph-view-canvas");
+      const width = container.clientWidth || 800;
+      const height = container.clientHeight || 520;
+      const centerX = width / 2;
+      const centerY = height / 2;
+
+      // Filter nodes and edges based on activeFilters
+      const filteredNodes = graphData.nodes.filter(n => activeFilters.type.has(n.type) && activeFilters.risk.has(n.risk));
+      const nodeMap = new Map(filteredNodes.map(n => [n.id, n]));
+      const filteredEdges = graphData.edges.filter(e => nodeMap.has(e.source) && nodeMap.has(e.target));
+
+      // Calculate node positions radially by hop
+      const positions = {};
+      positions[graphData.root.id] = { x: centerX, y: centerY };
+
+      // Group by hop
+      const hopGroups = {};
+      filteredNodes.forEach(n => {
+        if (n.id === graphData.root.id) return;
+        const h = n.hop || 1;
+        if (!hopGroups[h]) hopGroups[h] = [];
+        hopGroups[h].push(n);
+      });
+
+      const maxR = Math.min(width, height) * 0.44;
+      Object.keys(hopGroups).forEach(hopStr => {
+        const h = parseInt(hopStr);
+        const group = hopGroups[h];
+        const radius = (h / Math.max(currentDepth, 3)) * maxR + 50;
+        group.forEach((node, i) => {
+          const angle = (i / group.length) * 2 * Math.PI + (h * 0.4);
+          positions[node.id] = {
+            x: centerX + radius * Math.cos(angle),
+            y: centerY + radius * Math.sin(angle)
+          };
+        });
+      });
+
+      let svgContent = `
+        <defs>
+          <filter id="glow-crit" x="-30%" y="-30%" width="160%" height="160%">
+            <feGaussianBlur stdDeviation="5" result="blur"/>
+            <feComposite in="SourceGraphic" in2="blur" operator="over"/>
+          </filter>
+          <filter id="glow-orange" x="-30%" y="-30%" width="160%" height="160%">
+            <feGaussianBlur stdDeviation="4" result="blur"/>
+            <feComposite in="SourceGraphic" in2="blur" operator="over"/>
+          </filter>
+        </defs>
+        <g id="graph-viewport" transform="translate(${panOffset.x}, ${panOffset.y}) scale(${zoomLevel})">
+      `;
+
+      // Draw Edges
+      filteredEdges.forEach(e => {
+        const p1 = positions[e.source];
+        const p2 = positions[e.target];
+        if (!p1 || !p2) return;
+
+        let strokeColor = "#334155";
+        let strokeWidth = 1.6;
+        let dashArray = "none";
+        let opacity = 0.55;
+
+        if (e.suspiciousness === "HIGH-RISK") {
+          strokeColor = "#EF4444";
+          strokeWidth = 2.8;
+          dashArray = "5,4";
+          opacity = 0.9;
+        } else if (e.suspiciousness === "SUSPICIOUS") {
+          strokeColor = "#F97316";
+          strokeWidth = 2.4;
+          opacity = 0.85;
+        }
+
+        // Highlight if selected node is endpoint
+        if (selectedNodeId && (e.source === selectedNodeId || e.target === selectedNodeId)) {
+          strokeWidth += 1.5;
+          opacity = 1.0;
+        }
+
+        svgContent += `
+          <line id="edge-${e.id}" class="graph-edge" x1="${p1.x}" y1="${p1.y}" x2="${p2.x}" y2="${p2.y}"
+                stroke="${strokeColor}" stroke-width="${strokeWidth}" stroke-dasharray="${dashArray}" opacity="${opacity}"
+                onclick="inspectEdge('${e.id}')" style="cursor: pointer;">
+            <title>${e.type}: ${e.evidence}</title>
+          </line>
+        `;
+      });
+
+      // Draw Nodes
+      filteredNodes.forEach(n => {
+        const pos = positions[n.id] || { x: centerX, y: centerY };
+        let fill = "#1E3A8A";
+        let r = 24;
+        let stroke = "#38BDF8";
+        let filterAttr = "";
+
+        if (n.type === "DEVICE") { fill = "#EA580C"; r = 28; stroke = "#FDBA74"; filterAttr = 'filter="url(#glow-orange)"'; }
+        else if (n.type === "FRAUD_CASE") { fill = "#DC2626"; r = 28; stroke = "#FCA5A5"; filterAttr = 'filter="url(#glow-crit)"'; }
+        else if (n.type === "TRANSACTION") { fill = n.risk === "CRITICAL" ? "#EF4444" : "#0284C7"; r = 26; stroke = "#FFFFFF"; }
+        else if (n.type === "UPI") { fill = "#0284C7"; r = 22; stroke = "#38BDF8"; }
+        else if (n.type === "BENEFICIARY") { fill = "#7C3AED"; r = 24; stroke = "#C4B5FD"; }
+        else if (n.type === "PHONE") { fill = "#475569"; r = 20; stroke = "#94A3B8"; }
+
+        if (n.risk === "CRITICAL") stroke = "#EF4444";
+        if (n.id === selectedNodeId) stroke = "#FDE047";
+
+        const isRoot = n.id === graphData.root.id;
+        const rootRing = isRoot ? `<circle cx="${pos.x}" cy="${pos.y}" r="${r + 7}" fill="none" stroke="#38BDF8" stroke-width="2" stroke-dasharray="3,3"/>` : "";
+
+        svgContent += `
+          <g id="node-${cleanId(n.id)}" class="graph-node" transform="translate(${pos.x}, ${pos.y})"
+             onclick="onNodeClick('${n.id}')" ondblclick="expandNodeConnections('${n.type}', '${n.id}')" style="cursor: pointer;">
+            ${rootRing}
+            <circle cx="0" cy="0" r="${r}" fill="${fill}" stroke="${stroke}" stroke-width="${n.id === selectedNodeId ? 3.5 : 2}" ${filterAttr}/>
+            
+            <!-- Type Glyph -->
+            <text x="0" y="4" font-size="9" font-weight="800" fill="#FFFFFF" text-anchor="middle" font-family="monospace">
+              ${n.id.length > 8 ? n.id.substring(0, 7) + '..' : n.id}
+            </text>
+
+            <!-- Hop Badge -->
+            <circle cx="${r - 4}" cy="${-r + 4}" r="7" fill="#0F172A" stroke="${stroke}" stroke-width="1.5"/>
+            <text x="${r - 4}" y="${-r + 7}" font-size="8" font-weight="900" fill="#38BDF8" text-anchor="middle">${n.hop}</text>
+
+            <!-- Label -->
+            <text x="0" y="${r + 14}" font-size="10" font-weight="600" fill="#E2E8F0" text-anchor="middle">
+              ${n.label.split('\n')[0]}
+            </text>
+          </g>
+        `;
+      });
+
+      svgContent += `</g>`;
+      svg.innerHTML = svgContent;
+
+      initGraphPanZoom(container);
+    }
+
+    function cleanId(id) {
+      return id.replace(/[^a-zA-Z0-9]/g, '_');
+    }
+
+    // Graph Pan & Zoom Controls
+    function initGraphPanZoom(container) {
+      container.onmousedown = (e) => {
+        if (e.target.tagName === "circle" || e.target.tagName === "text") return;
+        isDraggingCanvas = true;
+        dragStart = { x: e.clientX - panOffset.x, y: e.clientY - panOffset.y };
+      };
+
+      window.onmousemove = (e) => {
+        if (!isDraggingCanvas) return;
+        panOffset = { x: e.clientX - dragStart.x, y: e.clientY - dragStart.y };
+        updateGraphTransform();
+      };
+
+      window.onmouseup = () => { isDraggingCanvas = false; };
+
+      container.onwheel = (e) => {
+        e.preventDefault();
+        const delta = e.deltaY < 0 ? 1.1 : 0.9;
+        zoomGraph(delta);
+      };
+    }
+
+    function zoomGraph(factor) {
+      zoomLevel = Math.max(0.4, Math.min(3.0, zoomLevel * factor));
+      updateGraphTransform();
+    }
+
+    function resetGraphTransform() {
+      zoomLevel = 1.0;
+      panOffset = { x: 0, y: 0 };
+      updateGraphTransform();
+    }
+
+    function fitGraphView() {
+      resetGraphTransform();
+    }
+
+    function updateGraphTransform() {
+      const g = document.getElementById("graph-viewport");
+      if (g) g.setAttribute("transform", `translate(${panOffset.x}, ${panOffset.y}) scale(${zoomLevel})`);
+    }
+
+    // Node & Edge Inspection Interactions
+    function onNodeClick(nodeId) {
+      selectedNodeId = nodeId;
+      selectedEdgeId = null;
+      renderGraphView();
+      inspectNode(nodeId);
+    }
+
+    function inspectNode(nodeId) {
+      if (!graphData) return;
+      const node = graphData.nodes.find(n => n.id === nodeId);
+      if (!node) return;
+
+      document.getElementById("insp-type").innerText = node.type;
+      document.getElementById("insp-id").innerText = node.id;
+      const riskBadge = document.getElementById("insp-risk-badge");
+      riskBadge.innerText = node.risk;
+      riskBadge.style.color = node.risk === "CRITICAL" ? "#EF4444" : (node.risk === "HIGH" ? "#F97316" : "#10B981");
+
+      // Metrics Grid
+      const mContainer = document.getElementById("insp-metrics");
+      mContainer.innerHTML = "";
+      const meta = node.metadata || {};
+
+      if (node.type === "TRANSACTION") {
+        mContainer.innerHTML = `
+          <div class="metric-box"><label>Amount</label><span>₹${meta.amount ? meta.amount.toLocaleString() : '0'}</span></div>
+          <div class="metric-box"><label>Status</label><span>${meta.status || 'COMPLETED'}</span></div>
+          <div class="metric-box"><label>Timestamp</label><span style="font-size: 0.72rem;">${meta.timestamp || 'N/A'}</span></div>
+          <div class="metric-box"><label>Rail</label><span>${meta.channel || 'UPI'}</span></div>
+        `;
+      } else if (node.type === "DEVICE") {
+        mContainer.innerHTML = `
+          <div class="metric-box"><label>Bound Accounts</label><span style="color: #F97316;">${meta.connected_accounts_count || 1} Accounts</span></div>
+          <div class="metric-box"><label>OS / Model</label><span style="font-size: 0.72rem;">${meta.os_info || 'Device'}</span></div>
+          <div class="metric-box"><label>IP Subnet</label><span>${meta.ip_address || '103.142.24.18'}</span></div>
+          <div class="metric-box"><label>Flagged</label><span>${meta.is_flagged ? 'YES (CRITICAL)' : 'NO'}</span></div>
+        `;
+      } else if (node.type === "ACCOUNT") {
+        mContainer.innerHTML = `
+          <div class="metric-box"><label>Holder Name</label><span>${meta.holder_name || node.id}</span></div>
+          <div class="metric-box"><label>Risk Tier</label><span>${meta.risk_tier || 'LOW'}</span></div>
+          <div class="metric-box"><label>Hardware</label><span>${meta.device_id || 'None'}</span></div>
+          <div class="metric-box"><label>VPA</label><span style="font-size: 0.7rem;">${meta.upi_id || 'None'}</span></div>
+        `;
+        loadAccountHistory(node.id);
+      } else if (node.type === "FRAUD_CASE") {
+        mContainer.innerHTML = `
+          <div class="metric-box"><label>Case Title</label><span style="font-size: 0.75rem;">${meta.title || 'Police Case'}</span></div>
+          <div class="metric-box"><label>Status</label><span style="color: #EF4444;">ACTIVE FIR</span></div>
+        `;
+      }
+
+      // Hide/Show Account History
+      document.getElementById("insp-history-wrapper").style.display = node.type === "ACCOUNT" ? "block" : "none";
+      document.getElementById("insp-edge-box").style.display = "none";
+
+      // Direct connections list
+      const connList = document.getElementById("insp-connections-list");
+      connList.innerHTML = "";
+      const connectedEdges = graphData.edges.filter(e => e.source === nodeId || e.target === nodeId);
+      connectedEdges.forEach(e => {
+        const otherId = e.source === nodeId ? e.target : e.source;
+        const otherNode = graphData.nodes.find(n => n.id === otherId);
+        const row = document.createElement("div");
+        row.className = "conn-row";
+        row.onclick = () => onNodeClick(otherId);
+        row.innerHTML = `
+          <div>
+            <strong>${otherId}</strong>
+            <span style="font-size: 0.7rem; color: var(--text-dim); display: block;">${e.type}</span>
+          </div>
+          <span class="tag-badge" style="color: ${e.suspiciousness === 'HIGH-RISK' ? '#EF4444' : (e.suspiciousness === 'SUSPICIOUS' ? '#F97316' : '#94A3B8')};">
+            ${e.suspiciousness}
+          </span>
+        `;
+        connList.appendChild(row);
+      });
+    }
+
+    function inspectEdge(edgeId) {
+      selectedEdgeId = edgeId;
+      const edge = graphData.edges.find(e => e.id === edgeId);
+      if (!edge) return;
+
+      const box = document.getElementById("insp-edge-box");
+      const text = document.getElementById("edge-evidence-text");
+      box.style.display = "block";
+      text.innerHTML = `
+        <strong>${edge.source} ➔ ${edge.target}</strong> [${edge.type}]<br>
+        <span style="color: ${edge.suspiciousness === 'HIGH-RISK' ? '#EF4444' : '#F97316'}; font-weight: 700;">Severity: ${edge.suspiciousness}</span><br>
+        <p style="margin-top: 4px;">${edge.evidence}</p>
+        ${edge.timestamp ? `<div style="font-size: 0.72rem; color: var(--text-dim); margin-top: 4px;">Timestamp: ${edge.timestamp}</div>` : ''}
+      `;
+    }
+
+    async function loadAccountHistory(accId) {
+      try {
+        const res = await fetch(`${API_BASE}/api/investigation/account/${accId}/history`);
+        const data = await res.json();
+        const tbody = document.getElementById("insp-history-body");
+        tbody.innerHTML = "";
+        data.transactions.forEach(t => {
+          const tr = document.createElement("tr");
+          tr.onclick = () => {
+            currentEntityId = t.transaction_id;
+            currentEntityType = "TRANSACTION";
+            loadInvestigation("TRANSACTION", t.transaction_id, currentDepth);
+          };
+          tr.innerHTML = `
+            <td>${t.timestamp.split(' ')[1] || t.timestamp}</td>
+            <td><strong>₹${t.amount.toLocaleString()}</strong></td>
+            <td>${t.beneficiary}</td>
+            <td><span style="color: ${t.risk_tier === 'CRITICAL' ? '#EF4444' : (t.risk_tier === 'HIGH' ? '#F97316' : '#10B981')}; font-weight: 700;">${t.risk_tier}</span></td>
+          `;
+          tbody.appendChild(tr);
+        });
+      } catch (err) {
+        console.error(err);
+      }
+    }
+
+    // Node Expansion
+    async function expandNodeConnections(type, id) {
+      try {
+        const res = await fetch(`${API_BASE}/api/investigation/entity/${type}/${id}/connections`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            investigation_id: currentInvestigationId,
+            existing_ids: graphData.nodes.map(n => n.id)
+          })
+        });
+        const data = await res.json();
+        if (data.nodes && data.nodes.length > 0) {
+          data.nodes.forEach(n => graphData.nodes.push(n));
+          data.edges.forEach(e => {
+            if (!graphData.edges.find(ge => ge.id === e.id)) graphData.edges.push(e);
+          });
+          renderGraphView();
+          inspectNode(id);
+          loadSessionDetails(currentInvestigationId);
+        }
+      } catch (err) {
+        console.error("Expand error:", err);
+      }
+    }
+
+    function expandCurrentNodeConnections() {
+      if (selectedNodeId) {
+        const node = graphData.nodes.find(n => n.id === selectedNodeId);
+        if (node) expandNodeConnections(node.type, node.id);
+      }
+    }
+
+    function investigateSelectedEntity() {
+      if (!selectedNodeId) return;
+      const node = graphData.nodes.find(n => n.id === selectedNodeId);
+      if (node) {
+        loadInvestigation(node.type, node.id, currentDepth);
+      }
+    }
+
+    function viewRiskFromSelected() {
+      if (selectedNodeId) {
+        if (selectedNodeId.startsWith("TXN-")) {
+          currentTxnId = selectedNodeId;
+          document.getElementById("case-select").value = selectedNodeId;
+        }
+        switchMainMode("risk");
+        fetchAssessment(currentTxnId);
+      }
+    }
+
+    function resetGraphFocus() {
+      selectedNodeId = null;
+      selectedEdgeId = null;
+      renderGraphView();
+    }
+
+    // ========================================================
+    // SHORTEST PATH & PATH VIEW ("Connect the Dots")
+    // ========================================================
+
+    async function traceSuspiciousPathToCase() {
+      const caseNode = graphData.nodes.find(n => n.type === "FRAUD_CASE");
+      const targetId = caseNode ? caseNode.id : "CASE-2026-018";
+
+      try {
+        const res = await fetch(`${API_BASE}/api/investigation/path?source=${graphData.root.id}&target=${targetId}`);
+        if (!res.ok) throw new Error("Path not found");
+        const path = await res.json();
+
+        document.getElementById("path-stats-badge").innerText = `SUSPICIOUS PATH: ${path.hop_count} HOPS / ${path.nodes.length} ENTITIES`;
+        document.getElementById("shortest-path-display").innerText = path.description;
+
+        // Switch to Path View
+        switchInvestigationView("path");
+        renderPathTraceChain(path);
+        loadSessionDetails(currentInvestigationId);
+      } catch (err) {
+        document.getElementById("shortest-path-display").innerText = "No direct suspicious connection to fraud case found in current depth.";
+      }
+    }
+
+    function renderPathView() {
+      if (!graphData || !graphData.paths || graphData.paths.length === 0) {
+        document.getElementById("path-view-container").innerHTML = `
+          <div style="padding: 24px; text-align: center; color: var(--text-dim);">
+            No paths computed yet. Click 'Trace Suspicious Path' to locate connecting chain.
+          </div>
+        `;
+        return;
+      }
+      renderPathTraceChain(graphData.paths[0]);
+    }
+
+    function renderPathTraceChain(path) {
+      const container = document.getElementById("path-view-container");
+      container.innerHTML = `<h3 style="color: #F97316; font-size: 0.9rem; margin-bottom: 12px;">SUSPICIOUS INVESTIGATION CHAIN (${path.hop_count} Hops)</h3>`;
+
+      path.nodes.forEach((node, i) => {
+        const edge = path.edges[i - 1];
+        if (edge) {
+          const arrow = document.createElement("div");
+          arrow.className = "path-connector-arrow";
+          arrow.innerHTML = `↓ ${edge.type} (${edge.suspiciousness}) — <em>${edge.evidence}</em>`;
+          container.appendChild(arrow);
+        }
+
+        const card = document.createElement("div");
+        card.className = `path-step-card ${node.risk === 'CRITICAL' ? 'high-risk' : 'suspicious'}`;
+        card.innerHTML = `
+          <div class="path-hop-badge">HOP ${node.hop || i}</div>
+          <div>
+            <div style="font-weight: 800; color: #FFFFFF; font-size: 0.95rem;">${node.id}</div>
+            <div style="font-size: 0.78rem; color: var(--text-muted);">${node.label.split('\n')[0]} (${node.type})</div>
+          </div>
+          <span class="severity-badge" style="background: ${node.risk === 'CRITICAL' ? 'var(--critical-bg)' : 'var(--high-bg)'}; color: ${node.risk === 'CRITICAL' ? '#EF4444' : '#F97316'}; border: 1px solid var(--border-bright);">
+            ${node.risk}
+          </span>
+        `;
+        container.appendChild(card);
+      });
+    }
+
+    // ========================================================
+    // INVESTIGATION TIMELINE VIEW
+    // ========================================================
+
+    async function renderTimelineView() {
+      const container = document.getElementById("timeline-view-container");
+      try {
+        const res = await fetch(`${API_BASE}/api/investigation/timeline/${currentEntityId}`);
+        const data = await res.json();
+        container.innerHTML = `<h3 style="color: #38BDF8; font-size: 0.9rem; margin-bottom: 14px;">CHRONOLOGICAL TRAIL</h3>`;
+        data.events.forEach(ev => {
+          const node = document.createElement("div");
+          node.className = "timeline-node";
+          node.style.paddingLeft = "24px";
+          node.style.position = "relative";
+          node.style.marginBottom = "14px";
+          node.innerHTML = `
+            <div class="timeline-dot ${ev.severity ? ev.severity.toLowerCase() : 'normal'}"></div>
+            <div class="timeline-time">${ev.timestamp}</div>
+            <div class="timeline-title">${ev.title}</div>
+            <div class="timeline-desc">${ev.description}</div>
+          `;
+          container.appendChild(node);
+        });
+      } catch (err) {
+        container.innerHTML = `<div style="color: var(--text-dim);">Timeline unavailable.</div>`;
+      }
+    }
+
+    // ========================================================
+    // BREADCRUMBS & SEARCH
+    // ========================================================
+
+    function renderBreadcrumbs() {
+      const container = document.getElementById("breadcrumbs-container");
+      container.innerHTML = `<span class="breadcrumb-item" onclick="resetInvestigationBreadcrumbs()">Root Investigation</span>`;
+      breadcrumbTrail.forEach((crumb, idx) => {
+        const sep = document.createElement("span");
+        sep.className = "breadcrumb-sep";
+        sep.innerText = "➔";
+        container.appendChild(sep);
+
+        const item = document.createElement("span");
+        item.className = "breadcrumb-item";
+        item.innerText = crumb.id;
+        item.onclick = () => {
+          breadcrumbTrail = breadcrumbTrail.slice(0, idx + 1);
+          loadInvestigation(crumb.type, crumb.id, currentDepth);
+        };
+        container.appendChild(item);
+      });
+    }
+
+    function resetInvestigationBreadcrumbs() {
+      breadcrumbTrail = [];
+      loadInvestigation("TRANSACTION", "TXN-48291", 3);
+    }
+
+    async function onSearchInput(val) {
+      const menu = document.getElementById("search-dropdown-menu");
+      if (!val || val.trim().length < 2) {
+        menu.classList.remove("open");
+        return;
+      }
+      try {
+        const res = await fetch(`${API_BASE}/api/investigation/search?q=${encodeURIComponent(val.trim())}`);
+        const data = await res.json();
+        menu.innerHTML = "";
+        if (data.results && data.results.length > 0) {
+          menu.classList.add("open");
+          data.results.forEach(r => {
+            const item = document.createElement("div");
+            item.className = "search-item";
+            item.onclick = () => {
+              menu.classList.remove("open");
+              document.getElementById("entity-search-input").value = "";
+              loadInvestigation(r.type, r.id, currentDepth);
+            };
+            item.innerHTML = `
+              <span><strong>${r.id}</strong> — ${r.label}</span>
+              <span class="tag-badge">${r.type}</span>
+            `;
+            menu.appendChild(item);
+          });
+        } else {
+          menu.classList.remove("open");
+        }
+      } catch (err) {
+        console.error(err);
+      }
+    }
+
+    // Filters
+    function toggleFilter(category, val, chipElem) {
+      const set = activeFilters[category];
+      if (set.has(val)) {
+        if (set.size > 1) set.delete(val);
+        chipElem.classList.remove("active");
+      } else {
+        set.add(val);
+        chipElem.classList.add("active");
+      }
+      renderGraphView();
+    }
+
+    // ========================================================
+    // SESSION FINDINGS, NOTES, AUDIT LOGS, AND CASE CREATION
+    // ========================================================
+
+    async function loadSessionDetails(invId) {
+      try {
+        const res = await fetch(`${API_BASE}/api/investigation/session/${invId}`);
+        if (!res.ok) return;
+        const data = await res.json();
+
+        // Findings chips
+        const fContainer = document.getElementById("session-findings-chips");
+        fContainer.innerHTML = "";
+        if (data.findings && data.findings.length > 0) {
+          data.findings.forEach(f => {
+            const chip = document.createElement("span");
+            chip.className = "tag-badge";
+            chip.style.borderColor = "#F97316";
+            chip.style.color = "#F97316";
+            chip.innerText = `★ ${f.label} (${f.item_type})`;
+            fContainer.appendChild(chip);
+          });
+        } else {
+          fContainer.innerHTML = `<span style="font-size: 0.74rem; color: var(--text-dim);">No entities marked yet. Click 'Mark Important' on any node.</span>`;
+        }
+
+        // Audit log
+        const aContainer = document.getElementById("session-audit-list");
+        aContainer.innerHTML = "";
+        (data.audit_logs || []).forEach(log => {
+          const entry = document.createElement("div");
+          entry.className = "audit-entry";
+          entry.innerHTML = `<strong style="color: #38BDF8;">[${log.action_type}]</strong> ${log.timestamp.split(' ')[1] || log.timestamp}: ${log.details}`;
+          aContainer.appendChild(entry);
+        });
+      } catch (err) {
+        console.error(err);
+      }
+    }
+
+    async function saveInvestigatorNote() {
+      const input = document.getElementById("investigator-note-input");
+      const text = input.value.trim();
+      if (!text) return;
+      try {
+        await fetch(`${API_BASE}/api/investigation/${currentInvestigationId}/note`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ note_text: text, author: "Lead Investigator" })
+        });
+        input.value = "";
+        loadSessionDetails(currentInvestigationId);
+      } catch (err) {
+        console.error(err);
+      }
+    }
+
+    async function markCurrentEntityImportant() {
+      if (!selectedNodeId) return;
+      const node = graphData.nodes.find(n => n.id === selectedNodeId);
+      if (!node) return;
+      try {
+        await fetch(`${API_BASE}/api/investigation/${currentInvestigationId}/important`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            item_type: node.type,
+            item_id: node.id,
+            label: `${node.id} (${node.label.split('\n')[0]})`,
+            reason: `Marked critical by investigator during trace of ${currentEntityId}`
+          })
+        });
+        loadSessionDetails(currentInvestigationId);
+      } catch (err) {
+        console.error(err);
+      }
+    }
+
+    async function addCurrentEntityAsEvidence() {
+      if (!selectedNodeId) return;
+      const node = graphData.nodes.find(n => n.id === selectedNodeId);
+      if (!node) return;
+      try {
+        await fetch(`${API_BASE}/api/investigation/${currentInvestigationId}/evidence`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            title: `${node.type} Lead: ${node.id}`,
+            details: `Observed in network graph at hop ${node.hop}. Risk level: ${node.risk}.`,
+            source: "Investigation Graph Traversal"
+          })
+        });
+        loadSessionDetails(currentInvestigationId);
+      } catch (err) {
+        console.error(err);
+      }
+    }
+
+    async function createCaseFromSession() {
+      try {
+        const res = await fetch(`${API_BASE}/api/investigation/${currentInvestigationId}/create-case`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            title: `Operation Phantom Pay — Escalation from ${currentInvestigationId}`,
+            description: `Official case registered from automated graph traversal. Discovered ${graphData.nodes.length} entities and ${graphData.risk_summary.suspicious_connections_count} suspicious connections.`
+          })
+        });
+        const data = await res.json();
+        alert(`[Case Management Integration]\nOfficial Case Created: ${data.case_id}\nStatus: ${data.status}\nLinked Findings: ${data.linked_findings_count}`);
+        loadSessionDetails(currentInvestigationId);
+      } catch (err) {
+        alert("Failed to create case: " + err.message);
+      }
+    }
+
+    // ========================================================
+    // RISK ENGINE RENDERER (Preserved 100%)
+    // ========================================================
+
+    async function fetchAssessment(txnId) {
+      try {
+        const res = await fetch(`${API_BASE}/api/risk-score/${txnId}`);
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        const data = await res.json();
+        assessmentData = data;
+        renderAssessment(data);
+      } catch (err) {
+        console.error("Failed to fetch risk assessment:", err);
+      }
+    }
+
+    function renderAssessment(data) {
+      const score = data.score;
+      const arc = document.getElementById("gauge-arc");
+      const numElem = document.getElementById("score-num");
+      const sevBadge = document.getElementById("severity-badge");
+
+      const totalCircumference = 414.69;
+      const offset = totalCircumference - (totalCircumference * (score / 100));
+
+      let strokeColor = "#10B981";
+      let sevBg = "var(--low-bg)";
+      let sevBorder = "var(--low-border)";
+      if (data.severity === "CRITICAL") {
+        strokeColor = "#EF4444";
+        sevBg = "var(--critical-bg)";
+        sevBorder = "var(--critical-border)";
+      } else if (data.severity === "HIGH") {
+        strokeColor = "#F97316";
+        sevBg = "var(--high-bg)";
+        sevBorder = "var(--high-border)";
+      } else if (data.severity === "MEDIUM") {
+        strokeColor = "#F59E0B";
+        sevBg = "var(--medium-bg)";
+        sevBorder = "var(--medium-border)";
+      }
+
+      arc.style.stroke = strokeColor;
+      arc.style.strokeDashoffset = offset;
+      sevBadge.style.color = strokeColor;
+      sevBadge.style.background = sevBg;
+      sevBadge.style.borderColor = sevBorder;
+      sevBadge.innerText = data.severity;
+      numElem.style.color = strokeColor;
+
+      animateCounter(numElem, score);
+
+      document.getElementById("txn-id-label").innerText = data.transaction_id;
+      document.getElementById("meta-amount").innerText = `₹${data.amount ? data.amount.toLocaleString() : '48,500'}`;
+      document.getElementById("meta-audit").innerText = data.assessment_id;
+      document.getElementById("narrative-text").innerText = data.executive_summary;
+      document.getElementById("confidence-pill").innerText = `CONFIDENCE: ${data.confidence}`;
+
+      // Drivers
+      const driversContainer = document.getElementById("drivers-container");
+      driversContainer.innerHTML = "";
+      if (data.primary_risk_drivers && data.primary_risk_drivers.length > 0) {
+        data.primary_risk_drivers.forEach((d, idx) => {
+          const item = document.createElement("div");
+          item.className = "driver-item";
+          item.innerHTML = `
+            <div class="driver-rank">#${idx + 1}</div>
+            <div class="driver-info">
+              <h4>${d.name}</h4>
+              <p>${d.summary}</p>
+            </div>
+            <div class="driver-points">+${d.contribution} pts</div>
+          `;
+          driversContainer.appendChild(item);
+        });
+      } else {
+        driversContainer.innerHTML = `<div style="padding: 10px; color: var(--text-dim);">No elevated risk drivers detected. Baseline satisfied.</div>`;
+      }
+
+      // Bars
+      const barsContainer = document.getElementById("bars-container");
+      barsContainer.innerHTML = "";
+      const maxWeights = { PREVIOUS_FRAUD: 25, SHARED_DEVICE: 20, VELOCITY_SURGE: 18, LINKED_ACCOUNTS: 16, COMMON_BENEFICIARY: 10, AMOUNT_ANOMALY: 5 };
+      data.signals.forEach(s => {
+        const maxW = maxWeights[s.signal_id] || 20;
+        const pct = Math.round((s.contribution / maxW) * 100);
+        const row = document.createElement("div");
+        row.className = "bar-row";
+        let color = "#3B82F6";
+        if (s.contribution >= 20) color = "#EF4444";
+        else if (s.contribution >= 15) color = "#F97316";
+        else if (s.contribution >= 10) color = "#F59E0B";
+
+        row.innerHTML = `
+          <div class="bar-labels">
+            <span>${s.name}</span>
+            <span>+${s.contribution} / ${maxW} pts</span>
+          </div>
+          <div class="bar-track">
+            <div class="bar-fill" style="width: ${s.triggered ? pct : 0}%; background: ${color};"></div>
+          </div>
+        `;
+        barsContainer.appendChild(row);
+      });
+
+      // Signals Accordion
+      const signalsContainer = document.getElementById("signals-container");
+      signalsContainer.innerHTML = "";
+      data.signals.forEach(s => {
+        const card = document.createElement("div");
+        const statusClass = !s.assessable ? "unassessable" : (s.triggered ? "triggered" : "not-triggered");
+        card.className = `signal-card ${statusClass}`;
+        let statusText = s.triggered ? `+${s.contribution} PTS` : "CLEAN";
+        let statusBg = s.triggered ? "rgba(239, 68, 68, 0.15)" : "rgba(100, 116, 139, 0.2)";
+        let statusColor = s.triggered ? "#EF4444" : "#94A3B8";
+        if (!s.assessable) {
+          statusText = "NOT ASSESSABLE";
+          statusBg = "rgba(245, 158, 11, 0.15)";
+          statusColor = "#F59E0B";
+        }
+        const evidenceLines = (s.evidence || []).map(ev => `<div style="font-size: 0.76rem; color: #CBD5E1; margin-bottom: 2px;">• ${ev}</div>`).join("");
+
+        card.innerHTML = `
+          <div class="signal-header" onclick="toggleSignalCard(this)">
+            <div class="signal-title-group">
+              <span class="signal-name">${s.name}</span>
+              <span class="signal-status-pill" style="background: ${statusBg}; color: ${statusColor};">${statusText}</span>
+            </div>
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+          </div>
+          <div class="signal-body ${s.triggered ? 'open' : ''}">
+            <p style="margin-bottom: 6px; color: #F1F5F9; font-size: 0.8rem;">${s.explanation}</p>
+            <div class="evidence-grid">
+              <div class="evidence-item"><label>Observed</label><span>${s.observed_value} ${s.unit || ''}</span></div>
+              <div class="evidence-item"><label>Threshold</label><span>${s.threshold} ${s.unit || ''}</span></div>
+            </div>
+            <div style="margin-top: 8px;">${evidenceLines}</div>
+            <div style="margin-top: 8px;">
+              <button class="btn" style="font-size: 0.72rem; padding: 3px 8px;" onclick="switchMainMode('investigation'); loadInvestigation('TRANSACTION', '${currentTxnId}', 3)">
+                Investigate in Graph ➔
+              </button>
+            </div>
+          </div>
+        `;
+        signalsContainer.appendChild(card);
+      });
+
+      // Entities Matrix
+      const ent = data.related_entities;
+      const entContainer = document.getElementById("entities-container");
+      entContainer.innerHTML = `
+        <div class="entity-tile" onclick="switchMainMode('investigation'); loadInvestigation('ACCOUNT', '${ent.account}', 3)">
+          <label>Subject Account</label>
+          <div class="value">${ent.account}</div>
+          <div class="sub">${ent.holder_name}</div>
+        </div>
+        <div class="entity-tile" onclick="switchMainMode('investigation'); loadInvestigation('DEVICE', '${ent.device}', 3)">
+          <label>Hardware Fingerprint</label>
+          <div class="value">${ent.device}</div>
+          <div class="sub">Android 14 (SM-A546B)</div>
+        </div>
+        <div class="entity-tile" onclick="switchMainMode('investigation'); loadInvestigation('UPI', '${ent.upi}', 3)">
+          <label>Destination VPA / UPI</label>
+          <div class="value">${ent.upi}</div>
+          <div class="sub">Laundering Funnel Hub</div>
+        </div>
+        <div class="entity-tile" onclick="switchMainMode('investigation'); loadInvestigation('BENEFICIARY', '${ent.beneficiary}', 3)">
+          <label>Beneficiary Entity</label>
+          <div class="value">${ent.beneficiary}</div>
+          <div class="sub">Cyber Shell Pvt Ltd</div>
+        </div>
+      `;
+
+      // Recommended Actions
+      const actContainer = document.getElementById("actions-container");
+      actContainer.innerHTML = "";
+      (data.recommended_actions || []).forEach(a => {
+        const tile = document.createElement("div");
+        tile.className = "action-tile";
+        tile.onclick = () => {
+          if (a.action === "open_network") switchMainMode("investigation");
+          else if (a.action === "open_cases" || a.action === "export_dossier") openEvidencePack();
+          else alert(`Action '${a.title}' registered.`);
+        };
+        tile.innerHTML = `<strong>${a.title}</strong><span>${a.description}</span>`;
+        actContainer.appendChild(tile);
+      });
+    }
+
+    function animateCounter(elem, target) {
+      let current = 0;
+      const step = Math.ceil(target / 25) || 1;
+      const interval = setInterval(() => {
+        current += step;
+        if (current >= target) {
+          current = target;
+          clearInterval(interval);
+        }
+        elem.innerText = current;
+      }, 20);
+    }
+
+    function toggleSignalCard(headerElem) {
+      headerElem.nextElementSibling.classList.toggle("open");
+    }
+
+    function switchTransaction(txnId) {
+      currentTxnId = txnId;
+      currentEntityId = txnId;
+      currentEntityType = "TRANSACTION";
+      fetchAssessment(txnId);
+      if (currentMode === "investigation") {
+        loadInvestigation("TRANSACTION", txnId, currentDepth);
+      }
+    }
+
+    async function recalculateCurrent() {
+      try {
+        const res = await fetch(`${API_BASE}/api/risk-score/${currentTxnId}/recalculate`, { method: "POST" });
+        const data = await res.json();
+        renderAssessment(data.assessment);
+      } catch (err) {
+        console.error(err);
+      }
+    }
+
+    async function executeTweak(actionOn, actionOff, btnElem) {
+      const isCurrentlyActive = btnElem.classList.contains("active");
+      const targetAction = isCurrentlyActive ? actionOff : actionOn;
+
+      try {
+        const res = await fetch(`${API_BASE}/api/demo/tweak`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ action: targetAction })
+        });
+        btnElem.classList.toggle("active");
+        fetchAssessment(currentTxnId);
+        if (currentMode === "investigation") {
+          loadInvestigation("TRANSACTION", currentTxnId, currentDepth);
+        }
+      } catch (err) {
+        console.error(err);
+      }
+    }
+
+    async function resetDemoState() {
+      try {
+        await fetch(`${API_BASE}/api/demo/reset`, { method: "POST" });
+        document.querySelectorAll(".tweak-btn").forEach(b => b.classList.remove("active"));
+        fetchAssessment(currentTxnId);
+        if (currentMode === "investigation") {
+          loadInvestigation("TRANSACTION", currentTxnId, currentDepth);
+        }
+      } catch (err) {
+        console.error(err);
+      }
+    }
+
+    // ========================================================
+    // ENHANCED EVIDENCE PACK DOSSIER MODAL
+    // ========================================================
+
+    async function openEvidencePack() {
+      const modal = document.getElementById("evidence-modal");
+      const content = document.getElementById("dossier-content");
+      content.innerHTML = `<div style="padding: 20px; color: var(--text-dim);">Compiling cryptographically sealed dossier with investigation telemetry...</div>`;
+      modal.classList.add("open");
+
+      try {
+        const res = await fetch(`${API_BASE}/api/investigate/evidence-pack/${currentTxnId}`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            badge_number: "INSP-MUMBAI-771",
+            investigation_id: currentInvestigationId
+          })
+        });
+        const dossier = await res.json();
+
+        const signalsList = (dossier.evidence_signals || []).map(s => `
+          <div style="background: rgba(15, 23, 42, 0.6); padding: 8px 10px; border-radius: 6px; margin-bottom: 6px;">
+            <div style="display: flex; justify-content: space-between; font-weight: 700; color: #FFFFFF; font-size: 0.82rem;">
+              <span>${s.signal}</span>
+              <span style="color: #EF4444;">${s.contribution}</span>
+            </div>
+            <p style="font-size: 0.78rem; color: #94A3B8; margin: 2px 0;">${s.finding}</p>
+          </div>
+        `).join("");
+
+        const invFindings = dossier.investigation_findings || {};
+
+        content.innerHTML = `
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-bottom: 14px; font-size: 0.8rem;">
+            <div>
+              <p><strong>Dossier ID:</strong> ${dossier.dossier_id}</p>
+              <p><strong>Investigation ID:</strong> ${dossier.investigation_id}</p>
+              <p><strong>Generated At:</strong> ${dossier.generated_at}</p>
+              <p><strong>Officer:</strong> ${dossier.investigator.name} (${dossier.investigator.badge})</p>
+            </div>
+            <div>
+              <p><strong>Target Transaction:</strong> ${dossier.transaction.transaction_id} (${dossier.transaction.amount})</p>
+              <p><strong>Risk Score:</strong> <strong style="color: #EF4444;">${dossier.risk_evaluation.converging_score} (${dossier.risk_evaluation.severity})</strong></p>
+              <p><strong>Subject:</strong> ${dossier.transaction.primary_subject}</p>
+              <p><strong>Hardware Bound:</strong> ${dossier.transaction.hardware_id}</p>
+            </div>
+          </div>
+
+          <div style="margin-bottom: 14px; background: rgba(56, 189, 248, 0.08); border: 1px solid rgba(56, 189, 248, 0.25); border-radius: 6px; padding: 10px;">
+            <h4 style="font-size: 0.82rem; color: #38BDF8; margin-bottom: 4px;">GRAPH INTELLIGENCE DISCOVERY:</h4>
+            <p style="font-size: 0.78rem; color: #E2E8F0;">
+              Discovered <strong>${invFindings.total_entities_discovered || 0} entities</strong> and <strong>${invFindings.total_relationships_verified || 0} relationships</strong>.
+              Detected <strong>${invFindings.suspicious_connections_count || 0} suspicious connections</strong> and <strong>${invFindings.previous_fraud_links_count || 0} police FIR matches</strong>.
+            </p>
+            ${invFindings.summary ? `<div style="font-size: 0.76rem; color: #94A3B8; margin-top: 6px; line-height: 1.4;">${invFindings.summary}</div>` : ''}
+          </div>
+
+          <div style="margin-bottom: 14px;">
+            <h4 style="font-size: 0.82rem; color: #FFFFFF; margin-bottom: 6px;">VERIFIED OBSERVABLE FRAUD SIGNALS:</h4>
+            ${signalsList}
+          </div>
+
+          <div class="dossier-hash">
+            <strong>FIPS 180-4 SHA-256 EVIDENCE CHECKSUM:</strong><br>
+            ${dossier.cryptographic_verification.evidence_hash}
+          </div>
+        `;
+      } catch (err) {
+        content.innerHTML = `<div style="color: #EF4444;">Error generating dossier: ${err.message}</div>`;
+      }
+    }
+
+    function closeEvidencePack() {
+      document.getElementById("evidence-modal").classList.remove("open");
+    }
+
+    // Initialize on page load
+    window.addEventListener("DOMContentLoaded", () => {
+      fetchAssessment(currentTxnId);
+    });
+  </script>
+</body>
+</html>
