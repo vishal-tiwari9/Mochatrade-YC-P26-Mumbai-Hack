@@ -1,0 +1,24 @@
+{
+  "name": "fraudnexus-feature6-money-flow",
+  "version": "1.0.0",
+  "description": "FraudNexus Feature 6: Money Flow & Attack Path Investigation Module",
+  "scripts": {
+    "dev": "concurrently \"npm run dev --prefix server\" \"npm run dev --prefix client\"",
+    "dev:server": "npm run dev --prefix server",
+    "dev:client": "npm run dev --prefix client",
+    "build": "npm run build --prefix server && npm run build --prefix client",
+    "start": "npm run start --prefix server"
+  },
+  "keywords": [
+    "fraud-detection",
+    "money-flow",
+    "attack-path",
+    "graph-analysis",
+    "financial-crime"
+  ],
+  "author": "FraudNexus Team",
+  "license": "ISC",
+  "devDependencies": {
+    "concurrently": "^9.1.2"
+  }
+}
