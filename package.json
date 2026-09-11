@@ -1,0 +1,14 @@
+{
+  "name": "fraudnexus-root",
+  "private": true,
+  "scripts": {
+    "dev": "npm --prefix FraudNexus run dev",
+    "build": "npm --prefix FraudNexus run build",
+    "preview": "npm --prefix FraudNexus run preview"
+  },
+  "devDependencies": {
+    "autoprefixer": "^10.5.5",
+    "postcss": "^8.5.28",
+    "tailwindcss": "^3.4.19"
+  }
+}

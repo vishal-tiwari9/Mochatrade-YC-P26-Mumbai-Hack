@@ -1,0 +1,8 @@
+node_modules/
+FraudNexus/node_modules/
+FraudNexus/dist/
+dist/
+.vite/
+.env
+.env.*
+.DS_Store
