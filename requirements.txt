@@ -1,0 +1,29 @@
+# MuleNet — Python dependencies
+# Install order matters for torch-geometric; install torch first.
+
+# Core
+fastapi==0.111.0
+uvicorn[standard]==0.29.0
+pydantic==2.7.1
+
+# Graph
+networkx==3.3
+
+# Numerics / data
+numpy==1.26.4
+pandas==2.2.2
+scikit-learn==1.5.0
+
+# ML
+torch==2.3.0
+torch-geometric==2.5.3
+
+# Explainability (PyG extras — install separately via pip after torch-geometric)
+# pip install torch-scatter torch-sparse -f https://data.pyg.org/whl/torch-2.3.0+cpu.html
+
+# PDF generation
+weasyprint==61.2
+jinja2==3.1.4
+
+# Utilities
+python-multipart==0.0.9

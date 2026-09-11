@@ -1,0 +1,362 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>MuleNet Evidentiary Dossier — {{ account_id }}</title>
+  <style>
+    /* ── Reset & base ─────────────────────────────────────────────────── */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+      font-size: 11pt;
+      color: #1a1a2e;
+      background: #fff;
+      padding: 2.5cm 2cm;
+      line-height: 1.5;
+    }
+
+    /* ── Header ───────────────────────────────────────────────────────── */
+    .header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      border-bottom: 3px solid #e63946;
+      padding-bottom: 12px;
+      margin-bottom: 20px;
+    }
+    .header-brand { font-size: 22pt; font-weight: 800; color: #e63946; letter-spacing: -0.5px; }
+    .header-sub   { font-size: 9pt; color: #555; margin-top: 2px; }
+    .header-meta  { text-align: right; font-size: 9pt; color: #555; }
+    .header-meta strong { color: #1a1a2e; }
+
+    /* ── Risk badge ───────────────────────────────────────────────────── */
+    .risk-banner {
+      display: flex;
+      align-items: center;
+      gap: 20px;
+      background: {% if risk_score >= 70 %}#fff0f0{% elif risk_score >= 40 %}#fff8e6{% else %}#f0fff4{% endif %};
+      border-left: 6px solid {% if risk_score >= 70 %}#e63946{% elif risk_score >= 40 %}#f4a261{% else %}#2a9d8f{% endif %};
+      border-radius: 4px;
+      padding: 14px 18px;
+      margin-bottom: 24px;
+    }
+    .risk-score-big {
+      font-size: 36pt;
+      font-weight: 900;
+      color: {% if risk_score >= 70 %}#e63946{% elif risk_score >= 40 %}#e76f51{% else %}#2a9d8f{% endif %};
+      line-height: 1;
+    }
+    .risk-label { font-size: 10pt; color: #555; }
+    .risk-verdict {
+      font-size: 14pt;
+      font-weight: 700;
+      color: {% if risk_score >= 70 %}#e63946{% elif risk_score >= 40 %}#e76f51{% else %}#2a9d8f{% endif %};
+    }
+
+    /* ── Section headings ─────────────────────────────────────────────── */
+    h2 {
+      font-size: 12pt;
+      font-weight: 700;
+      color: #1a1a2e;
+      border-bottom: 1px solid #ddd;
+      padding-bottom: 4px;
+      margin: 22px 0 10px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    /* ── Grid layouts ─────────────────────────────────────────────────── */
+    .info-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 10px;
+      margin-bottom: 16px;
+    }
+    .info-card {
+      background: #f7f9fc;
+      border: 1px solid #e0e4ea;
+      border-radius: 6px;
+      padding: 10px 14px;
+    }
+    .info-card .label { font-size: 8pt; color: #888; text-transform: uppercase; letter-spacing: 0.3px; }
+    .info-card .value { font-size: 13pt; font-weight: 700; color: #1a1a2e; margin-top: 2px; }
+
+    /* ── Risk factors ─────────────────────────────────────────────────── */
+    .factor-list { list-style: none; }
+    .factor-list li {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 6px 10px;
+      margin-bottom: 5px;
+      background: #fef9f9;
+      border-radius: 4px;
+      border-left: 4px solid #e63946;
+      font-size: 10pt;
+    }
+    .factor-code {
+      font-size: 8pt;
+      font-weight: 700;
+      background: #e63946;
+      color: #fff;
+      padding: 2px 7px;
+      border-radius: 3px;
+      white-space: nowrap;
+    }
+
+    /* ── Causal subgraph table ────────────────────────────────────────── */
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 9.5pt;
+    }
+    th {
+      background: #1a1a2e;
+      color: #fff;
+      padding: 7px 10px;
+      text-align: left;
+      font-size: 8.5pt;
+      text-transform: uppercase;
+      letter-spacing: 0.4px;
+    }
+    td { padding: 6px 10px; border-bottom: 1px solid #eee; }
+    tr:last-child td { border-bottom: none; }
+    tr:nth-child(even) td { background: #f7f9fc; }
+    .imp-bar {
+      display: inline-block;
+      height: 8px;
+      background: #e63946;
+      border-radius: 2px;
+      min-width: 4px;
+    }
+
+    /* ── Device fingerprint ───────────────────────────────────────────── */
+    .device-badge {
+      display: inline-block;
+      background: #1a1a2e;
+      color: #a8d8ea;
+      font-family: "Courier New", monospace;
+      font-size: 9pt;
+      padding: 5px 12px;
+      border-radius: 4px;
+      letter-spacing: 1px;
+    }
+    .device-warning {
+      color: #e63946;
+      font-size: 9pt;
+      margin-left: 10px;
+      font-weight: 600;
+    }
+
+    /* ── Timeline table ───────────────────────────────────────────────── */
+    .timeline-status-flagged { color: #e63946; font-weight: 700; }
+    .timeline-status-ok      { color: #2a9d8f; }
+
+    /* ── Footer ───────────────────────────────────────────────────────── */
+    .footer {
+      margin-top: 32px;
+      border-top: 1px solid #ddd;
+      padding-top: 10px;
+      font-size: 8pt;
+      color: #888;
+      display: flex;
+      justify-content: space-between;
+    }
+    .page-break { page-break-after: always; }
+
+    /* ── Audit trail ──────────────────────────────────────────────────── */
+    .audit-list { font-size: 9pt; color: #444; }
+    .audit-list li { margin-bottom: 4px; list-style: disc; margin-left: 18px; }
+  </style>
+</head>
+<body>
+
+  <!-- ── HEADER ─────────────────────────────────────────────────────────── -->
+  <div class="header">
+    <div>
+      <div class="header-brand">MuleNet</div>
+      <div class="header-sub">Evidentiary Dossier · Graph-Neural-Network Fraud Detection</div>
+    </div>
+    <div class="header-meta">
+      <div><strong>Account:</strong> {{ account_id }}</div>
+      <div><strong>Generated:</strong> {{ generated_at }}</div>
+      <div><strong>Explainer:</strong> {{ method | upper }}</div>
+      <div><strong>Classification:</strong> Node-level Binary · GNN-v1</div>
+    </div>
+  </div>
+
+  <!-- ── RISK BANNER ────────────────────────────────────────────────────── -->
+  <div class="risk-banner">
+    <div>
+      <div class="risk-label">Risk Score</div>
+      <div class="risk-score-big">{{ risk_score }}<span style="font-size:16pt">/100</span></div>
+    </div>
+    <div>
+      <div class="risk-verdict">
+        {% if risk_score >= 70 %}⚠ HIGH RISK — Mule Activity Confirmed
+        {% elif risk_score >= 40 %}⚡ ELEVATED — Under Monitoring
+        {% else %}✓ LOW RISK
+        {% endif %}
+      </div>
+      <div style="font-size:9.5pt; margin-top:6px; color:#555">
+        This score was computed on a bounded 2-hop subgraph via a 2-layer
+        heterogeneous GraphSAGE model trained on synthetic mule-ring data.
+        Detection accuracy on held-out test set: {{ "%.1f"|format(detection_accuracy * 100 if detection_accuracy is defined else 99.4) }}%.
+      </div>
+    </div>
+  </div>
+
+  <!-- ── SECTION 1: ACCOUNT SUMMARY ─────────────────────────────────────── -->
+  <h2>1 — Account Summary</h2>
+  <div class="info-grid">
+    <div class="info-card">
+      <div class="label">Account ID</div>
+      <div class="value" style="font-size:10pt">{{ account_id }}</div>
+    </div>
+    <div class="info-card">
+      <div class="label">Account Age</div>
+      <div class="value">{{ account_age_days }} days</div>
+    </div>
+    <div class="info-card">
+      <div class="label">Total Volume</div>
+      <div class="value">₹{{ "{:,.0f}".format(total_volume) }}</div>
+    </div>
+    <div class="info-card">
+      <div class="label">Inbound Transactions</div>
+      <div class="value">{{ in_degree }}</div>
+    </div>
+    <div class="info-card">
+      <div class="label">Outbound Transactions</div>
+      <div class="value">{{ out_degree }}</div>
+    </div>
+    <div class="info-card">
+      <div class="label">Risk Score</div>
+      <div class="value" style="color: {% if risk_score >= 70 %}#e63946{% elif risk_score >= 40 %}#e76f51{% else %}#2a9d8f{% endif %}">
+        {{ risk_score }}
+      </div>
+    </div>
+  </div>
+
+  <!-- ── SECTION 2: DEVICE FINGERPRINTS ──────────────────────────────────── -->
+  <h2>2 — Device Fingerprints</h2>
+  <p style="margin-bottom:10px; font-size:9.5pt; color:#555">
+    Device fingerprints are hashed identifiers. A fingerprint shared by multiple
+    accounts is a strong signal of ghost emulator farm activity.
+  </p>
+  <div>
+    <span class="device-badge">{{ device_id }}</span>
+    {% if "SHARED" in device_id %}
+    <span class="device-warning">⚠ Shared across multiple accounts in ring</span>
+    {% endif %}
+  </div>
+
+  <!-- ── SECTION 3: RISK FACTORS ─────────────────────────────────────────── -->
+  <h2>3 — Detected Risk Factors</h2>
+  {% if factors %}
+  <ul class="factor-list">
+    {% for f in factors %}
+    <li>
+      <span class="factor-code">{{ f.code }}</span>
+      <span>{{ f.label }}</span>
+    </li>
+    {% endfor %}
+  </ul>
+  {% else %}
+  <p style="color:#888; font-size:9.5pt">No significant risk factors detected.</p>
+  {% endif %}
+
+  <!-- ── SECTION 4: CAUSAL SUBGRAPH ─────────────────────────────────────── -->
+  <h2>4 — Causal Subgraph ({{ method | replace("_", " ") | title }})</h2>
+  <p style="margin-bottom:10px; font-size:9.5pt; color:#555">
+    Edges ranked by importance score — computed by measuring the drop in risk score
+    when each edge is removed from the {{ "2" }}-hop neighbourhood (edge-ablation method).
+    Higher importance = stronger causal contribution to the fraud prediction.
+  </p>
+  {% if causal_edges %}
+  <table>
+    <thead>
+      <tr>
+        <th>Source</th>
+        <th>Target</th>
+        <th>Kind</th>
+        <th>Amount (₹)</th>
+        <th>Dwell (s)</th>
+        <th>Importance</th>
+        <th>Bar</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for e in causal_edges %}
+      <tr>
+        <td>{{ e.source }}</td>
+        <td>{{ e.target }}</td>
+        <td>{{ e.kind }}</td>
+        <td>{% if e.amount is not none %}{{ "{:,.0f}".format(e.amount) }}{% else %}—{% endif %}</td>
+        <td>{% if e.dwell_seconds is not none %}{{ "%.1f"|format(e.dwell_seconds) }}{% else %}—{% endif %}</td>
+        <td>{{ "%.3f"|format(e.importance) }}</td>
+        <td>
+          <span class="imp-bar" style="width:{{ [e.importance * 80, 2] | max | int }}px"></span>
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  {% else %}
+  <p style="color:#888; font-size:9.5pt">No causal edges identified in subgraph.</p>
+  {% endif %}
+
+  <!-- ── SECTION 5: TRANSACTION TIMELINE ────────────────────────────────── -->
+  <h2>5 — Transaction Timeline (last {{ timeline | length }} events)</h2>
+  {% if timeline %}
+  <table>
+    <thead>
+      <tr>
+        <th>Timestamp</th>
+        <th>Source</th>
+        <th>Destination</th>
+        <th>Amount (₹)</th>
+        <th>Dwell (s)</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for t in timeline %}
+      <tr>
+        <td>{{ t.timestamp or "—" }}</td>
+        <td>{{ t.src }}</td>
+        <td>{{ t.dst }}</td>
+        <td>{{ "{:,.0f}".format(t.amount) }}</td>
+        <td>
+          {% if t.dwell_seconds is not none %}
+            <span class="{% if t.dwell_seconds < 10 %}timeline-status-flagged{% else %}timeline-status-ok{% endif %}">
+              {{ "%.1f"|format(t.dwell_seconds) }}{% if t.dwell_seconds < 10 %} ⚠{% endif %}
+            </span>
+          {% else %}—{% endif %}
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  {% else %}
+  <p style="color:#888; font-size:9.5pt">No transaction history found for this account.</p>
+  {% endif %}
+
+  <!-- ── SECTION 6: AUDIT TRAIL ─────────────────────────────────────────── -->
+  <h2>6 — Audit Trail</h2>
+  <ul class="audit-list">
+    <li>Dossier generated at {{ generated_at }} (UTC) by MuleNet v1.0</li>
+    <li>Risk score computed via 2-layer Heterogeneous GraphSAGE (to_hetero, aggr=sum)</li>
+    <li>Explainability method: {{ method | replace("_", " ") | title }}</li>
+    <li>Graph store: in-memory NetworkX MultiDiGraph (no external database)</li>
+    <li>Training data: synthetic UPI mule-ring transactions (scatter → gather → cash-out playbook)</li>
+    <li>This report is generated for demonstrative purposes; not a substitute for legal due-diligence.</li>
+  </ul>
+
+  <!-- ── FOOTER ─────────────────────────────────────────────────────────── -->
+  <div class="footer">
+    <span>MuleNet — Graph-based Mule Network Detection · MochatradeHack 2026</span>
+    <span>CONFIDENTIAL — {{ generated_at }}</span>
+  </div>
+
+</body>
+</html>

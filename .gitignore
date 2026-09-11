@@ -1,0 +1,31 @@
+# MuleNet .gitignore
+
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+.venv/
+venv/
+env/
+*.egg-info/
+dist/
+build/
+
+# Data files (large JSON — regenerate via data_gen.py)
+data/transactions.json
+data/labels.json
+data/devices.json
+data/hetero_data.pt
+data/account_ids.json
+
+# Model weights (regenerate via train.py)
+mulenet_model.pt
+
+# IDE / OS
+.vscode/
+.idea/
+*.DS_Store
+Thumbs.db
+
+# Logs
+*.log
