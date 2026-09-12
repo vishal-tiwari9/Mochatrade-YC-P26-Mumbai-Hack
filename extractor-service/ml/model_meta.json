@@ -1,0 +1,68 @@
+{
+  "algorithm": "LogisticRegression (scikit-learn, StandardScaler pipeline)",
+  "trainedAt": "2026-08-20T17:03:28Z",
+  "trainingSamples": 4800,
+  "testSamples": 1200,
+  "accuracy": 0.7492,
+  "aucRoc": 0.8193,
+  "features": [
+    "cibilScore",
+    "foir",
+    "dpd90Count",
+    "bounceCountLast6M",
+    "hasWriteOff",
+    "obligationRatio",
+    "loanToIncomeRatio",
+    "assetToLoanRatio",
+    "incomeTrendPct"
+  ],
+  "featureWeights": [
+    {
+      "feature": "cibilScore",
+      "coefficient": -1.3769,
+      "description": "Bureau credit score (300-900)"
+    },
+    {
+      "feature": "foir",
+      "coefficient": 0.6199,
+      "description": "Fixed obligation to income ratio, % (existing obligations + proposed EMI / income)"
+    },
+    {
+      "feature": "dpd90Count",
+      "coefficient": 0.4046,
+      "description": "Count of 90+ day past-due delinquencies"
+    },
+    {
+      "feature": "hasWriteOff",
+      "coefficient": 0.3629,
+      "description": "Prior loan write-off/settlement on record (0/1)"
+    },
+    {
+      "feature": "loanToIncomeRatio",
+      "coefficient": 0.3237,
+      "description": "Requested amount / annualized income"
+    },
+    {
+      "feature": "bounceCountLast6M",
+      "coefficient": 0.2968,
+      "description": "Bank statement bounce count, last 6 months"
+    },
+    {
+      "feature": "obligationRatio",
+      "coefficient": 0.2082,
+      "description": "Existing obligations / monthly income, %"
+    },
+    {
+      "feature": "incomeTrendPct",
+      "coefficient": -0.1581,
+      "description": "YoY income change from ITR, % (0 if unavailable)"
+    },
+    {
+      "feature": "assetToLoanRatio",
+      "coefficient": -0.0953,
+      "description": "Declared assets / requested amount (0 if not declared)"
+    }
+  ],
+  "dataSource": "Synthetic \u2014 no real historical loan outcomes exist for this project. Features drawn from realistic distributions; labels sampled from a noisy, credit-domain-informed ground-truth function, not memorized from a fixed rule. Disclosed for judging transparency; do not present as trained on real defaults.",
+  "positiveRate": 0.4365
+}

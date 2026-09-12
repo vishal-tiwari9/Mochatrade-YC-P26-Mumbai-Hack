@@ -1,0 +1,8 @@
+fastapi
+uvicorn
+pdfplumber
+python-multipart
+pydantic
+scikit-learn
+numpy
+joblib

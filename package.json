@@ -1,0 +1,15 @@
+{
+  "name": "nbfc-underwriting-platform",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "dev:backend": "cd backend && npm run dev",
+    "dev:frontend": "cd frontend && npm run dev",
+    "dev:extractor": "node start-extractor.js",
+    "dev": "concurrently -n \"BACKEND,FRONTEND,EXTRACTOR\" -c \"blue.bold,cyan.bold,magenta.bold\" --prefix \"[{name}]\" \"npm run dev:backend\" \"npm run dev:frontend\" \"npm run dev:extractor\"",
+    "seed": "cd backend && node src/scripts/seed.js"
+  },
+  "devDependencies": {
+    "concurrently": "^8.2.2"
+  }
+}
