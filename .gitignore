@@ -1,0 +1,41 @@
+# Dependencies
+node_modules/
+*/node_modules/
+
+# Environment variables & secrets
+.env
+.env.*
+*.env
+!.env.example
+!*.env.example
+
+# Python virtual environments & bytecode
+.venv/
+*/.venv/
+venv/
+*/venv/
+env/
+*/env/
+__pycache__/
+**/__pycache__/
+*.py[cod]
+*$py.class
+
+# Build & Logs
+dist/
+*/dist/
+build/
+*.log
+.DS_Store
+Thumbs.db
+
+# IDE & Editor folders
+.claude/
+.gemini/
+.vscode/
+.idea/
+
+# Legacy / Uploads
+backend-fastapi-old/
+uploads/
+*/uploads/
