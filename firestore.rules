@@ -1,0 +1,21 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    function signedIn() { return request.auth != null; }
+    function teacher() { return signedIn() && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'TEACHER'; }
+    function member(classroomId) { return signedIn() && exists(/databases/$(database)/documents/classMembers/$(request.auth.uid + '_' + classroomId)); }
+    function owns(classroomId) { return teacher() && get(/databases/$(database)/documents/classrooms/$(classroomId)).data.teacherId == request.auth.uid; }
+    match /users/{id} { allow read: if signedIn() && (id == request.auth.uid || teacher()); allow create: if id == request.auth.uid; allow update: if id == request.auth.uid && request.resource.data.role == resource.data.role; }
+    match /classrooms/{id} { allow read: if teacher() || member(id); allow create: if teacher(); allow update,delete: if teacher() && resource.data.teacherId == request.auth.uid; }
+    match /classMembers/{id} { allow read: if signedIn() && (resource.data.studentId == request.auth.uid || owns(resource.data.classroomId)); allow create: if owns(request.resource.data.classroomId); allow delete: if owns(resource.data.classroomId); allow update: if false; }
+    match /lectures/{id} { allow read: if owns(resource.data.classroomId) || member(resource.data.classroomId); allow create,update: if owns(request.resource.data.classroomId); allow delete: if owns(resource.data.classroomId); }
+    match /attendanceSessions/{id} { allow read: if owns(resource.data.classroomId) || member(resource.data.classroomId); allow create: if owns(request.resource.data.classroomId); allow update,delete: if false; }
+    match /attendanceRecords/{id} { allow read: if owns(resource.data.classroomId) || resource.data.studentId == request.auth.uid; allow write: if owns(request.resource.data.classroomId); }
+    match /resources/{id} { allow read: if owns(resource.data.classroomId) || member(resource.data.classroomId); allow write: if owns(request.resource.data.classroomId); }
+    match /tests/{id} { allow read: if owns(resource.data.classroomId) || member(resource.data.classroomId); allow write: if owns(request.resource.data.classroomId); }
+    match /questions/{id} { allow read: if owns(get(/databases/$(database)/documents/tests/$(resource.data.testId)).data.classroomId); allow write: if owns(get(/databases/$(database)/documents/tests/$(request.resource.data.testId)).data.classroomId); }
+    match /testAttempts/{id} { allow read: if owns(get(/databases/$(database)/documents/tests/$(resource.data.testId)).data.classroomId) || resource.data.studentId == request.auth.uid; allow create,update: if signedIn() && request.resource.data.studentId == request.auth.uid; }
+    match /testAnswers/{id} { allow read,write: if signedIn() && (owns(get(/databases/$(database)/documents/tests/$(resource.data.testId)).data.classroomId) || resource.data.studentId == request.auth.uid); }
+    match /notifications/{id} { allow read: if signedIn() && resource.data.userId == request.auth.uid; allow write: if false; }
+  }
+}

@@ -1,0 +1,3 @@
+Clean the supplied Whisper transcript while preserving only the teacher's meaning.
+Remove filler repetitions, obvious STT noise, and duplicate fragments. Repair obvious punctuation and sentence boundaries.
+Do not add facts, examples, definitions, or corrections based on external knowledge. Preserve uncertain language or write [Transcription uncertain].

@@ -1,0 +1,9 @@
+rules_version = '2';
+service firebase.storage {
+  match /b/{bucket}/o {
+    function signedIn() { return request.auth != null; }
+    function member(classroomId) { return firestore.exists(/databases/(default)/documents/classMembers/$(request.auth.uid + '_' + classroomId)); }
+    function owns(classroomId) { return firestore.get(/databases/(default)/documents/classrooms/$(classroomId)).data.teacherId == request.auth.uid; }
+    match /classrooms/{classroomId}/{allPaths=**} { allow read: if signedIn() && (member(classroomId) || owns(classroomId)); allow write: if signedIn() && owns(classroomId) && request.resource.size < 50 * 1024 * 1024; }
+  }
+}

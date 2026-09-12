@@ -1,0 +1,38 @@
+# Local secrets and credentials
+**/.env
+**/.env.*
+!**/.env.example
+class-ai-*-firebase-adminsdk-*.json
+*service-account*.json
+*.jks
+
+# The root client config is a duplicate; keep the Android config required by Gradle.
+google-services.json
+!classai/app/google-services.json
+
+# Dependencies, caches, generated files, and local runtime data
+**/node_modules/
+**/.venv/
+**/__pycache__/
+**/.pytest_cache/
+**/.mypy_cache/
+**/.gradle/
+**/.kotlin/
+**/build/
+**/dist/
+**/.vite/
+**/.vite-temp/
+*.py[cod]
+*.log
+*.tmp
+*.db
+*.sqlite*
+.teacher-build-check/
+
+# Nonessential local metadata and generated reports
+classai/metadata.json
+teacher-web/tsconfig.tsbuildinfo
+
+# Keep the root README requested for the initial commit; ignore other Markdown docs.
+*.md
+!README.md

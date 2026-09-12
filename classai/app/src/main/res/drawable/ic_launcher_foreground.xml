@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+    <group
+        android:pivotX="54"
+        android:pivotY="54">
+        <!-- Graduation Cap & Academic Crest -->
+        <path
+            android:fillColor="#FFFFFF"
+            android:pathData="M54,28L28,40L54,52L80,40L54,28Z" />
+        <path
+            android:fillColor="#E0E7FF"
+            android:pathData="M35,46.5L35,59C35,66 43,71.5 54,71.5C65,71.5 73,66 73,59L73,46.5L54,55L35,46.5Z" />
+        <!-- Tassel -->
+        <path
+            android:strokeColor="#FBBF24"
+            android:strokeWidth="2.5"
+            android:strokeLineCap="round"
+            android:pathData="M76,42L82,53L82,62" />
+        <path
+            android:fillColor="#FBBF24"
+            android:pathData="M80,62H84V66H80Z" />
+        <!-- AI Sparkle / Star below cap -->
+        <path
+            android:fillColor="#38BDF8"
+            android:pathData="M54,75C54,77.5 55.5,79 58,79C55.5,79 54,80.5 54,83C54,80.5 52.5,79 50,79C52.5,79 54,77.5 54,75Z" />
+        <path
+            android:fillColor="#A5B4FC"
+            android:pathData="M40,73C40,74.5 41,75.5 42.5,75.5C41,75.5 40,76.5 40,78C40,76.5 39,75.5 37.5,75.5C39,75.5 40,74.5 40,73Z" />
+        <path
+            android:fillColor="#A5B4FC"
+            android:pathData="M68,73C68,74.5 69,75.5 70.5,75.5C69,75.5 68,76.5 68,78C68,76.5 67,75.5 65.5,75.5C67,75.5 68,74.5 68,73Z" />
+    </group>
+</vector>

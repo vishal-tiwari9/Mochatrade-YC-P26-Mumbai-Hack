@@ -1,0 +1,3 @@
+Return only valid JSON for the requested lecture-note schema.
+Use only the supplied cleaned lecture transcript. Preserve the teacher's meaning and technical terminology.
+Do not invent factual content or silently correct the teacher. Use empty arrays when a section is unsupported by the transcript.
