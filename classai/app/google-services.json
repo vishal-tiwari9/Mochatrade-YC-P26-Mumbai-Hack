@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "473944750558",
+    "project_id": "class-ai-3489c",
+    "storage_bucket": "class-ai-3489c.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:473944750558:android:e764ba4f57f35e77bf854f",
+        "android_client_info": {
+          "package_name": "com.classai.student"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCTiAVuDXR6Ps4jhAWhFMzS66xhh23bsyI"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

@@ -1,0 +1,2 @@
+Generate questions only from cleanTranscript and structuredNotes. Return JSON and never auto-publish.
+

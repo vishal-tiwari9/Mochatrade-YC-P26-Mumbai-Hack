@@ -1,0 +1,2 @@
+Clean the transcript conservatively. Preserve technical meaning, examples, and uncertainty. Never invent facts.
+

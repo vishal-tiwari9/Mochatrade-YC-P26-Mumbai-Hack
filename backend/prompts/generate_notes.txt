@@ -1,0 +1,2 @@
+Return valid JSON using the ClassAI structured notes schema. Use only the supplied lecture transcript.
+

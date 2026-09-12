@@ -1,0 +1,3 @@
+Return only valid JSON with a questions array. Generate questions only from the supplied cleaned transcript and structured notes.
+Each question must use an allowed requested type, have an answer supported by the lecture, and include options/correctAnswers for objective question types.
+Do not use general knowledge to fill gaps or generate unrelated questions.
