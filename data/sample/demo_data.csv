@@ -1,0 +1,2 @@
+amount,currency,days_to_payment,counterparty,exposure_type
+50000,USD,45,ABC Electronics,payable
